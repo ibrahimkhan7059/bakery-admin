@@ -40,15 +40,15 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// ✅ Category Routes (Without `show()`)
-Route::middleware(['auth'])->prefix('admin')->group(function () {
+// Category Routes
+Route::middleware(['auth'])->group(function () {
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
     Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
-    Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/categories/{category}/products', [CategoryController::class, 'products'])->name('categories.products');
 });
 
 // ✅ Product Routes 
@@ -60,9 +60,6 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::delete('/products/{product}/delete-image', [ProductController::class, 'deleteImage'])->name('products.deleteImage');
-
-    // ✅ Show products by category
-    Route::get('/categories/{category}/products', [ProductController::class, 'showByCategory'])->name('categories.products');
 });
 
 // Orders
@@ -74,6 +71,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update'); // Update order
     Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy'); // Delete order
     Route::get('/admin/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/bulk-update', [OrderController::class, 'bulkUpdate'])->name('orders.bulk-update'); // Bulk update orders
+    Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status'); // Update order status
 });
 
 // ✅ Customer Routes

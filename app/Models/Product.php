@@ -5,18 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['category_id', 'name', 'price', 'image', 'description'];
-    
-    protected $casts = [
-        'price' => 'decimal:2'
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'stock',
+        'image',
+        'category_id'
     ];
     
-    public function category()
+    protected $casts = [
+        'price' => 'decimal:2',
+        'stock' => 'integer'
+    ];
+    
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
@@ -24,8 +33,25 @@ class Product extends Model
     public function getImageUrlAttribute()
     {
         if (!$this->image) {
+            \Log::info('No image set for product', ['id' => $this->id]);
             return asset('images/no-image.png');
         }
-        return Storage::url($this->image);
+        
+        // Check if the image exists in storage
+        if (Storage::disk('public')->exists($this->image)) {
+            $url = Storage::url($this->image);
+            \Log::info('Image URL generated', [
+                'id' => $this->id,
+                'path' => $this->image,
+                'url' => $url
+            ]);
+            return $url;
+        }
+        
+        \Log::warning('Image not found in storage', [
+            'id' => $this->id,
+            'path' => $this->image
+        ]);
+        return asset('images/no-image.png');
     }
 }

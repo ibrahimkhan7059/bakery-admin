@@ -5,24 +5,26 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Category;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Routing\Controller;
 
 
 class CategoryController extends Controller
 {
     // 📌 Show all categories
     public function index(Request $request)
-{
-    // Get the search query from the request
-    $search = $request->input('search');
+    {
+        $query = Category::query();
 
-    // Query Builder with Search and Pagination
-    $categories = Category::where('name', 'like', '%' . $search . '%')
-                          ->orderBy('id', 'asc')
-                          ->paginate(5); // ✅ Pagination added
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
 
-    // Return the view with the filtered or paginated categories
-    return view('admin.categories.index', compact('categories'));
-}
+        $categories = $query->withCount('products')->oldest()->paginate(10);
+        return view('admin.categories.index', compact('categories'));
+    }
 
 
     // 📌 Show create form
@@ -34,9 +36,37 @@ class CategoryController extends Controller
     // 📌 Store new category
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|unique:categories']);
-        Category::create(['name' => $request->name]);
-        return redirect()->route('categories.index')->with('success', 'Category added successfully!');
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $category = new Category();
+        $category->name = $request->name;
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            
+            // Create image manager with GD driver
+            $manager = new ImageManager(new Driver());
+            
+            // Compress and resize image
+            $img = $manager->read($image->getRealPath());
+            $img->resize(800, 800, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
+            
+            // Save compressed image
+            Storage::disk('public')->put('categories/' . $filename, $img->toJpeg(75));
+            $category->image = 'categories/' . $filename;
+        }
+
+        $category->save();
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Category created successfully.');
     }
 
     // 📌 Show edit form
@@ -48,15 +78,58 @@ class CategoryController extends Controller
     // 📌 Update category
     public function update(Request $request, Category $category)
     {
-        $request->validate(['name' => 'required|unique:categories,name,' . $category->id]);
-        $category->update(['name' => $request->name]);
-        return redirect()->route('categories.index')->with('success', 'Category updated successfully!');
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $category->name = $request->name;
+
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($category->image) {
+                Storage::disk('public')->delete($category->image);
+            }
+
+            $image = $request->file('image');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            
+            // Create image manager with GD driver
+            $manager = new ImageManager(new Driver());
+            
+            // Compress and resize image
+            $img = $manager->read($image->getRealPath());
+            $img->resize(800, 800, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
+            
+            // Save compressed image
+            Storage::disk('public')->put('categories/' . $filename, $img->toJpeg(75));
+            $category->image = 'categories/' . $filename;
+        }
+
+        $category->save();
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Category updated successfully.');
     }
 
     // 📌 Delete category
     public function destroy(Category $category)
     {
+        // Delete image if exists
+        if ($category->image) {
+            Storage::disk('public')->delete($category->image);
+        }
+
         $category->delete();
         return redirect()->route('categories.index')->with('success', 'Category deleted successfully!');
+    }
+
+    public function products(Category $category)
+    {
+        $products = $category->products()->paginate(10);
+        return view('admin.categories.products', compact('category', 'products'));
     }
 }

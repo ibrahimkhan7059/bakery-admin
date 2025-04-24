@@ -16,6 +16,12 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+        <!-- Styles -->
+        @livewireStyles
+
         <style>
             .glass-card {
                 background: rgba(255, 255, 255, 0.7);
@@ -77,5 +83,11 @@
                 @yield('content')  <!-- Replaces $slot -->
             </main>
         </div>
+
+        @stack('modals')
+
+        @livewireScripts
+
+        @stack('scripts')
     </body>
 </html>

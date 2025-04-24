@@ -3,8 +3,8 @@
 @section('content')
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar - Reusing from dashboard -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-gradient-to-b from-indigo-900 to-purple-900 sidebar min-vh-100 shadow-lg">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar min-vh-100 shadow-lg">
             <div class="position-sticky pt-4">
                 <div class="d-flex align-items-center justify-content-center mb-4">
                     <div class="bg-white p-2 rounded-circle me-2 reflection">
@@ -63,58 +63,62 @@
 
         <!-- Main Content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 bg-gray-50">
-            <!-- Header with Back Button -->
+            <!-- Header -->
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2 text-gray-800 fw-bold">Add New Customer</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <a href="{{ route('customers.index') }}" class="btn btn-secondary d-flex align-items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-                        </svg>
-                        Back to Customers
-                    </a>
-                </div>
             </div>
 
-            <!-- Customer Form -->
-            <div class="card border-0 shadow-sm rounded-lg overflow-hidden">
-                <div class="card-body p-4">
+            <div class="card border-0 shadow-sm rounded-lg">
+                <div class="card-body">
                     <form action="{{ route('customers.store') }}" method="POST">
                         @csrf
 
-                        <div class="mb-3">
-                            <label for="name" class="form-label fw-bold">Name</label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Name</label>
+                                <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required>
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required>
+                                @error('email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" name="phone" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}" required>
+                                @error('phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required>
+                                @error('password')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <input type="password" name="password_confirmation" class="form-control" required>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label fw-bold">Email</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" required>
-                            @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="password" class="form-label fw-bold">Password</label>
-                            <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" required>
-                            @error('password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="password_confirmation" class="form-label fw-bold">Confirm Password</label>
-                            <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
-                        </div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-primary px-4">
-                                <i class="bi bi-save me-2"></i> Save Customer
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-lg me-2"></i>Create Customer
                             </button>
+                            <a href="{{ route('customers.index') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-lg me-2"></i>Cancel
+                            </a>
                         </div>
                     </form>
                 </div>

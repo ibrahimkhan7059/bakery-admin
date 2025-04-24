@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-gradient-to-b from-indigo-900 to-purple-900 sidebar min-vh-100 shadow-lg">
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar min-vh-100 shadow-lg">
             <div class="position-sticky pt-4">
                 <div class="d-flex align-items-center justify-content-center mb-4">
                     <div class="bg-white p-2 rounded-circle me-2 reflection">

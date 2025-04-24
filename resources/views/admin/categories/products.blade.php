@@ -65,43 +65,76 @@
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 bg-gray-50">
             <!-- Header -->
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2 text-gray-800 fw-bold">Create New Category</h1>
+                <h1 class="h2 text-gray-800 fw-bold">Products in {{ $category->name }}</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a href="{{ route('products.create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-2"></i>Add New Product
+                    </a>
+                </div>
             </div>
 
             <div class="card border-0 shadow-sm rounded-lg">
                 <div class="card-body">
-                    <form action="{{ route('categories.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-
-                        <div class="mb-4">
-                            <label class="form-label">Category Name</label>
-                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    @if($products->isEmpty())
+                        <div class="text-center py-5">
+                            <i class="bi bi-box-seam text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 text-muted">No products found in this category</h5>
+                           
                         </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">Category Image</label>
-                            <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*">
-                            @error('image')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="text-muted">Recommended size: 200x200 pixels</small>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($products as $product)
+                                        <tr>
+                                            <td>
+                                                @if($product->image)
+                                                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                                @else
+                                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                        <i class="bi bi-image text-muted"></i>
+                                                    </div>
+                                                @endif
+                                            </td>
+                                            <td>{{ $product->name }}</td>
+                                            <td>Rs. {{ number_format($product->price, 2) }}</td>
+                                            <td>{{ $product->stock }}</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="{{ route('products.edit', $product) }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <form action="{{ route('products.destroy', $product) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this product?')">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
 
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save me-2"></i>Create Category
-                            </button>
-                            <a href="{{ route('categories.index') }}" class="btn btn-secondary">
-                                <i class="bi bi-x-lg me-2"></i>Cancel
-                            </a>
+                            {{ $products->links() }}
                         </div>
-                    </form>
+                    @endif
                 </div>
             </div>
         </main>
     </div>
 </div>
-@endsection
+@endsection 

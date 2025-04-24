@@ -3,8 +3,8 @@
 @section('content')
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar - Reusing from dashboard -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-gradient-to-b from-indigo-900 to-purple-900 sidebar min-vh-100 shadow-lg">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar min-vh-100 shadow-lg">
             <div class="position-sticky pt-4">
                 <div class="d-flex align-items-center justify-content-center mb-4">
                     <div class="bg-white p-2 rounded-circle me-2 reflection">
@@ -63,23 +63,15 @@
 
         <!-- Main Content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 bg-gray-50">
-            <!-- Header with Back Button -->
+            <!-- Header -->
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2 text-gray-800 fw-bold">Customer Details</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <a href="{{ route('customers.index') }}" class="btn btn-secondary d-flex align-items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-                        </svg>
-                        Back to Customers
-                    </a>
-                </div>
             </div>
 
             <!-- Customer Details Card -->
             <div class="row">
                 <div class="col-lg-8">
-                    <div class="card border-0 shadow-sm rounded-lg overflow-hidden mb-4">
+                    <div class="card border-0 shadow-sm rounded-lg mb-4">
                         <div class="card-header bg-white py-3 border-bottom">
                             <div class="d-flex align-items-center justify-content-between">
                                 <h5 class="mb-0 fw-bold text-gray-800">Profile Information</h5>
@@ -102,6 +94,10 @@
                                 <div class="col-md-8">{{ $customer->email }}</div>
                             </div>
                             <div class="row mb-3">
+                                <div class="col-md-4 fw-bold text-gray-700">Phone</div>
+                                <div class="col-md-8">{{ $customer->phone ?? 'N/A' }}</div>
+                            </div>
+                            <div class="row mb-3">
                                 <div class="col-md-4 fw-bold text-gray-700">Registered On</div>
                                 <div class="col-md-8">{{ $customer->created_at->format('F d, Y') }}</div>
                             </div>
@@ -114,7 +110,7 @@
                 </div>
 
                 <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm rounded-lg overflow-hidden">
+                    <div class="card border-0 shadow-sm rounded-lg">
                         <div class="card-header bg-white py-3 border-bottom">
                             <h5 class="mb-0 fw-bold text-gray-800">Actions</h5>
                         </div>
