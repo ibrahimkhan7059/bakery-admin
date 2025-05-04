@@ -41,12 +41,20 @@ class ProductController extends Controller
             
             // Validate the request
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'description' => 'required|string',
-                'price' => 'required|numeric|min:0',
-                'stock' => 'required|integer|min:0',
+                'name' => 'required|string|max:255|regex:/^[A-Za-z\s\(\)\[\]]+$/',
+                'description' => 'required|string|min:10|max:1000',
+                'price' => 'required|numeric|min:0|max:999999.99',
+                'stock' => 'required|integer|min:0|max:1000',
                 'category_id' => 'required|exists:categories,id',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:6144' // 6MB max
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|dimensions:min_width=100,min_height=100'
+            ], [
+                'name.regex' => 'Product name can only contain letters, spaces, and brackets',
+                'description.min' => 'Description must be at least 10 characters long',
+                'description.max' => 'Description cannot exceed 1000 characters',
+                'price.max' => 'Price cannot exceed ₨999,999.99',
+                'stock.max' => 'Stock cannot exceed 1000 units',
+                'image.dimensions' => 'Image dimensions must be at least 100x100 pixels',
+                'image.max' => 'Image size cannot exceed 2MB'
             ]);
 
             \Log::info('Validation passed', ['data' => $validated]);
@@ -69,7 +77,7 @@ class ProductController extends Controller
                 
                 $image = $request->file('image');
                 $filename = time() . '_' . $image->getClientOriginalName();
-                
+
                 // Create image manager with GD driver
                 $manager = new ImageManager(new Driver());
                 
@@ -167,12 +175,20 @@ class ProductController extends Controller
             \Log::info('Starting product update process', ['product_id' => $product->id]);
             
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'description' => 'required|string',
-                'price' => 'required|numeric|min:0',
-                'stock' => 'required|integer|min:0',
+                'name' => 'required|string|max:255|regex:/^[A-Za-z\s\(\)\[\]]+$/',
+                'description' => 'required|string|min:10|max:1000',
+                'price' => 'required|numeric|min:0|max:999999.99',
+                'stock' => 'required|integer|min:0|max:1000',
                 'category_id' => 'required|exists:categories,id',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:6144' // 6MB max
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|dimensions:min_width=100,min_height=100'
+            ], [
+                'name.regex' => 'Product name can only contain letters, spaces, and brackets',
+                'description.min' => 'Description must be at least 10 characters long',
+                'description.max' => 'Description cannot exceed 1000 characters',
+                'price.max' => 'Price cannot exceed ₨999,999.99',
+                'stock.max' => 'Stock cannot exceed 1000 units',
+                'image.dimensions' => 'Image dimensions must be at least 100x100 pixels',
+                'image.max' => 'Image size cannot exceed 2MB'
             ]);
 
             $product->name = $validated['name'];
@@ -192,10 +208,10 @@ class ProductController extends Controller
                 if ($product->image) {
                     Storage::disk('public')->delete($product->image);
                 }
-                
+
                 $image = $request->file('image');
                 $filename = time() . '_' . $image->getClientOriginalName();
-                
+
                 // Create image manager with GD driver
                 $manager = new ImageManager(new Driver());
                 
@@ -284,7 +300,7 @@ class ProductController extends Controller
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
-        
+
         $product->delete();
         return redirect()->route('products.index')
             ->with('success', 'Product deleted successfully.');

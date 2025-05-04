@@ -1,215 +1,267 @@
 @extends('layouts.app')
 
+@section('title', 'Create Order')
+
 @section('content')
 <div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar min-vh-100 shadow-lg">
-            <div class="position-sticky pt-4">
-                <div class="d-flex align-items-center justify-content-center mb-4">
-                    <div class="bg-white p-2 rounded-circle me-2 reflection">
-                        <svg class="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
-                        </svg>
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
+        <h1 class="h2 text-gray-800 fw-bold">Create New Order</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary hover-lift">
+                <i class="bi bi-arrow-left me-1"></i> Back to Orders
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-lg glass-card">
+        <div class="card-body">
+            <form action="{{ route('orders.store') }}" method="POST" id="orderForm">
+                @csrf
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+                            <input type="text" name="customer_name" id="customerName" class="form-control @error('customer_name') is-invalid @enderror" 
+                                value="{{ old('customer_name') }}" required
+                                pattern="[A-Za-z\s]+"
+                                title="Customer name can only contain letters and spaces"
+                                oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')">
+                            @error('customer_name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
-                    <span class="text-white fw-bold fs-5">Bakery Admin</span>
-                </div>
-                
-                <!-- Modules Section Header -->
-                <div class="text-white px-3 py-2 mb-2">
-                    <h6 class="text-uppercase opacity-75 mb-0 fw-bold">Modules</h6>
-                </div>
-                
-                <ul class="nav flex-column p-3">
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('admin.dashboard') }}">
-                            <span class="me-3"><i class="bi bi-house-door-fill"></i></span>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center active bg-white bg-opacity-10 rounded-lg text-white py-2 px-3 hover-lift" href="{{ route('orders.index') }}">
-                            <span class="me-3"><i class="bi bi-box-seam-fill"></i></span>
-                            <span>Orders</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('categories.index') }}">
-                            <span class="me-3"><i class="bi bi-grid-fill"></i></span>
-                            <span>Categories</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('products.index') }}">
-                            <span class="me-3"><i class="bi bi-bag-fill"></i></span>
-                            <span>Products</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('customers.index') }}">
-                            <span class="me-3"><i class="bi bi-people-fill"></i></span>
-                            <span>Customers</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="#">
-                            <span class="me-3"><i class="bi bi-gear-fill"></i></span>
-                            <span>Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 bg-gray-50">
-            <!-- Header -->
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2 text-gray-800 fw-bold">Create New Order</h1>
-            </div>
-
-            <div class="card border-0 shadow-sm rounded-lg">
-                <div class="card-body">
-                    <form action="{{ route('orders.store') }}" method="POST" id="orderForm">
-                        @csrf
-
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label">Customer Name</label>
-                                <input type="text" name="customer_name" class="form-control @error('customer_name') is-invalid @enderror" value="{{ old('customer_name') }}" required>
-                                @error('customer_name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Customer Phone</label>
-                                <input type="tel" name="customer_phone" class="form-control @error('customer_phone') is-invalid @enderror" value="{{ old('customer_phone') }}" required>
-                                @error('customer_phone')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
+                    <div class="col-md-6">
                         <div class="mb-4">
-                            <label class="form-label">Delivery Address</label>
-                            <textarea name="delivery_address" class="form-control @error('delivery_address') is-invalid @enderror" rows="3" required>{{ old('delivery_address') }}</textarea>
-                            @error('delivery_address')
+                            <label class="form-label">Customer Phone <span class="text-danger">*</span></label>
+                            <input type="text" name="customer_phone" id="customerPhone" class="form-control @error('customer_phone') is-invalid @enderror" 
+                                value="{{ old('customer_phone') }}" required
+                                pattern="(03[0-9]{9}|\+923[0-9]{9})"
+                                title="Please enter a valid Pakistani phone number (e.g., 03001234567 or +923001234567)"
+                                placeholder="03001234567 or +923001234567"
+                                oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
+                            <small class="text-muted">Format: 03XXXXXXXXX or +923XXXXXXXXX</small>
+                            @error('customer_phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <label class="form-label">Payment Method</label>
-                                <select name="payment_method" class="form-select @error('payment_method') is-invalid @enderror" required>
-                                    <option value="">Select Payment Method</option>
-                                    <option value="cash" {{ old('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
-                                    <option value="card" {{ old('payment_method') == 'card' ? 'selected' : '' }}>Card</option>
-                                    <option value="online" {{ old('payment_method') == 'online' ? 'selected' : '' }}>Online</option>
-                                </select>
-                                @error('payment_method')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">Priority</label>
-                                <select name="priority" class="form-select @error('priority') is-invalid @enderror" required>
-                                    <option value="">Select Priority</option>
-                                    <option value="1" {{ old('priority') == '1' ? 'selected' : '' }}>High</option>
-                                    <option value="2" {{ old('priority') == '2' ? 'selected' : '' }}>Medium</option>
-                                    <option value="3" {{ old('priority') == '3' ? 'selected' : '' }}>Low</option>
-                                </select>
-                                @error('priority')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">Order Notes</label>
-                            <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="3">{{ old('notes') }}</textarea>
-                            @error('notes')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Order Items -->
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="mb-0">Order Items</h5>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="addItem()">
-                                    <i class="bi bi-plus-lg me-2"></i>Add Item
-                                </button>
-                            </div>
-
-                            <div id="orderItems">
-                                <!-- Items will be added here dynamically -->
-                            </div>
-                        </div>
-
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save me-2"></i>Create Order
-                            </button>
-                            <a href="{{ route('orders.index') }}" class="btn btn-secondary">
-                                <i class="bi bi-x-lg me-2"></i>Cancel
-                            </a>
-                        </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
-        </main>
+
+                <div class="mb-4">
+                    <label class="form-label">Delivery Address <span class="text-danger">*</span></label>
+                    <textarea name="delivery_address" class="form-control @error('delivery_address') is-invalid @enderror" 
+                        rows="2" required maxlength="255">{{ old('delivery_address') }}</textarea>
+                    @error('delivery_address')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                    <select name="payment_method" class="form-select @error('payment_method') is-invalid @enderror" required>
+                        <option value="">Select Payment Method</option>
+                        <option value="cash" {{ old('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
+                        <option value="gcash" {{ old('payment_method') == 'gcash' ? 'selected' : '' }}>GCash</option>
+                        <option value="bank_transfer" {{ old('payment_method') == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                    </select>
+                    @error('payment_method')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Order Notes</label>
+                    <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" 
+                        rows="2" maxlength="500">{{ old('notes') }}</textarea>
+                    <small class="text-muted">Maximum 500 characters</small>
+                    @error('notes')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Products <span class="text-danger">*</span></label>
+                    <div id="products-container">
+                        <div class="product-row mb-3">
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <select name="products[0][id]" class="form-select product-select" required>
+                                        <option value="">Select Product</option>
+                                        @foreach($products as $product)
+                                            <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-stock="{{ $product->stock }}">
+                                                {{ $product->name }} - ₨{{ number_format($product->price, 2) }} (Stock: {{ $product->stock }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" name="products[0][quantity]" class="form-control quantity-input" 
+                                        min="1" max="100" value="1" required
+                                        oninput="validateQuantity(this)">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control product-total" readonly>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-danger btn-sm remove-product" disabled>
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary mt-2 hover-lift" id="add-product">
+                        <i class="bi bi-plus-lg me-1"></i> Add Product
+                    </button>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="form-label">Subtotal</label>
+                            <input type="text" class="form-control" id="subtotal" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="form-label">Total Amount</label>
+                            <input type="text" class="form-control" id="total" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary hover-lift">
+                        <i class="bi bi-save me-1"></i> Create Order
+                    </button>
+                    <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary hover-lift">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 @push('scripts')
 <script>
-    let itemCount = 0;
+document.addEventListener('DOMContentLoaded', function() {
+    const productsContainer = document.getElementById('products-container');
+    const addProductBtn = document.getElementById('add-product');
+    const orderForm = document.getElementById('orderForm');
+    let productCount = 1;
 
-    function addItem() {
-        const itemsDiv = document.getElementById('orderItems');
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'card mb-3';
-        itemDiv.innerHTML = `
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-5">
-                        <label class="form-label">Product</label>
-                        <select name="items[${itemCount}][product_id]" class="form-select" required>
-                            <option value="">Select Product</option>
-                            @foreach($products as $product)
-                                <option value="{{ $product->id }}">{{ $product->name }} - ${{ $product->price }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Quantity</label>
-                        <input type="number" name="items[${itemCount}][quantity]" class="form-control" min="1" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Notes</label>
-                        <input type="text" name="items[${itemCount}][notes]" class="form-control">
-                    </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger" onclick="removeItem(this)">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        itemsDiv.appendChild(itemDiv);
-        itemCount++;
+    function validateQuantity(input) {
+        const productSelect = input.closest('.product-row').querySelector('.product-select');
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        const maxStock = selectedOption ? parseInt(selectedOption.dataset.stock) : 0;
+        
+        if (parseInt(input.value) > maxStock) {
+            input.setCustomValidity(`Maximum available stock is ${maxStock}`);
+        } else if (parseInt(input.value) > 100) {
+            input.setCustomValidity('Maximum quantity per product is 100');
+        } else {
+            input.setCustomValidity('');
+        }
     }
 
-    function removeItem(button) {
-        button.closest('.card').remove();
+    function updateProductRow(row) {
+        const productSelect = row.querySelector('.product-select');
+        const quantityInput = row.querySelector('.quantity-input');
+        const productTotal = row.querySelector('.product-total');
+        const removeBtn = row.querySelector('.remove-product');
+
+        function calculateTotal() {
+            const price = parseFloat(productSelect.options[productSelect.selectedIndex]?.dataset.price || 0);
+            const quantity = parseInt(quantityInput.value) || 0;
+            const total = price * quantity;
+            productTotal.value = `₨${total.toFixed(2)}`;
+            updateOrderTotals();
+        }
+
+        productSelect.addEventListener('change', function() {
+            validateQuantity(quantityInput);
+            calculateTotal();
+        });
+        
+        quantityInput.addEventListener('input', function() {
+            validateQuantity(this);
+            calculateTotal();
+        });
+
+        removeBtn.addEventListener('click', function() {
+            if (productCount > 1) {
+                row.remove();
+                productCount--;
+                updateOrderTotals();
+            }
+        });
+
+        calculateTotal();
     }
 
-    // Add first item on page load
-    document.addEventListener('DOMContentLoaded', addItem);
+    function updateOrderTotals() {
+        let subtotal = 0;
+        document.querySelectorAll('.product-total').forEach(input => {
+            subtotal += parseFloat(input.value.replace('₨', '')) || 0;
+        });
+
+        document.getElementById('subtotal').value = `₨${subtotal.toFixed(2)}`;
+        document.getElementById('total').value = `₨${subtotal.toFixed(2)}`;
+    }
+
+    addProductBtn.addEventListener('click', function() {
+        const newRow = document.querySelector('.product-row').cloneNode(true);
+        const inputs = newRow.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.name) {
+                const index = productCount;
+                input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
+            }
+            input.value = '';
+            if (input.classList.contains('product-total')) {
+                input.value = '₨0.00';
+            } else if (input.classList.contains('quantity-input')) {
+                input.value = '1';
+            }
+        });
+        newRow.querySelector('.remove-product').disabled = false;
+        productsContainer.appendChild(newRow);
+        productCount++;
+        updateProductRow(newRow);
+    });
+
+    // Form validation
+    orderForm.addEventListener('submit', function(e) {
+        const customerName = document.getElementById('customerName').value;
+        const customerPhone = document.getElementById('customerPhone').value;
+        
+        if (!/^[A-Za-z\s]+$/.test(customerName)) {
+            e.preventDefault();
+            alert('Customer name can only contain letters and spaces');
+            return false;
+        }
+        
+        if (!/^(03[0-9]{9}|\+923[0-9]{9})$/.test(customerPhone)) {
+            e.preventDefault();
+            alert('Please enter a valid Pakistani phone number (e.g., 03001234567 or +923001234567)');
+            return false;
+        }
+
+        // Check if at least one product is selected
+        const hasProducts = Array.from(document.querySelectorAll('.product-select')).some(select => select.value !== '');
+        if (!hasProducts) {
+            e.preventDefault();
+            alert('Please add at least one product to the order');
+            return false;
+        }
+    });
+
+    // Initialize first row
+    updateProductRow(document.querySelector('.product-row'));
+});
 </script>
 @endpush
 @endsection

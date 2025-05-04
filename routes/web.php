@@ -8,6 +8,8 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Models\User;
+use App\Http\Controllers\BulkOrderController;
+use App\Http\Controllers\SettingsController;
 
 Route::get('/', function () {
     return redirect('/login'); // Redirect to login page
@@ -28,20 +30,17 @@ Route::get('/dashboard', function () {
     return redirect('/admin/dashboard'); // Redirect users to the admin panel
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// ✅ Admin Dashboard
-Route::middleware(['auth'])->group(function () {
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-});
+// ✅ Admin Routes
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
-// ✅ Profile Routes
-Route::middleware(['auth'])->group(function () {
+    // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
-// Category Routes
-Route::middleware(['auth'])->group(function () {
+    // Category Routes
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
@@ -49,10 +48,8 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::get('/categories/{category}/products', [CategoryController::class, 'products'])->name('categories.products');
-});
 
-// ✅ Product Routes 
-Route::middleware(['auth'])->prefix('admin')->group(function () {
+    // Product Routes
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
@@ -60,23 +57,30 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::delete('/products/{product}/delete-image', [ProductController::class, 'deleteImage'])->name('products.deleteImage');
-});
 
-// Orders
-Route::middleware(['auth'])->prefix('admin')->group(function () {
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index'); // Show all orders
-    Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create'); // Show form to create order
-    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store'); // Store order in DB
-    Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit'); // Show edit order form
-    Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update'); // Update order
-    Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy'); // Delete order
-    Route::get('/admin/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-    Route::post('/orders/bulk-update', [OrderController::class, 'bulkUpdate'])->name('orders.bulk-update'); // Bulk update orders
-    Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status'); // Update order status
-});
+    // Orders Routes
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
+    Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/bulk-update', [OrderController::class, 'bulkUpdate'])->name('orders.bulk-update');
+    Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
+    Route::get('/orders/{order}/print-receipt', [OrderController::class, 'printReceipt'])->name('orders.print-receipt');
 
-// ✅ Customer Routes
-Route::middleware(['auth'])->prefix('admin')->group(function () {
+    // Bulk Orders Routes
+    Route::get('/bulk-orders', [BulkOrderController::class, 'index'])->name('bulk-orders.index');
+    Route::get('/bulk-orders/create', [BulkOrderController::class, 'create'])->name('bulk-orders.create');
+    Route::post('/bulk-orders', [BulkOrderController::class, 'store'])->name('bulk-orders.store');
+    Route::get('/bulk-orders/{bulkOrder}', [BulkOrderController::class, 'show'])->name('bulk-orders.show');
+    Route::get('/bulk-orders/{bulkOrder}/edit', [BulkOrderController::class, 'edit'])->name('bulk-orders.edit');
+    Route::put('/bulk-orders/{bulkOrder}', [BulkOrderController::class, 'update'])->name('bulk-orders.update');
+    Route::delete('/bulk-orders/{bulkOrder}', [BulkOrderController::class, 'destroy'])->name('bulk-orders.destroy');
+    Route::post('/bulk-orders/{bulkOrder}/status', [BulkOrderController::class, 'updateStatus'])->name('bulk-orders.update-status');
+
+    // Customer Routes
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
@@ -84,7 +88,20 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+
+    // Settings Routes
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+    Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('settings.notifications');
+    Route::put('/settings/security', [SettingsController::class, 'updateSecurity'])->name('settings.security');
 });
 
 // ✅ Laravel Breeze Auth Routes
 require __DIR__.'/auth.php';
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+});

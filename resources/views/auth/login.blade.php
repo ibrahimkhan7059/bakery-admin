@@ -1,47 +1,175 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
-    <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-1">Login</h1>
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ config('app.name', 'Laravel') }} - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            margin: 1rem;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-header h2 {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .login-header p {
+            color: #666;
+            margin-bottom: 0;
+        }
+        .form-control {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .remember-me input {
+            margin-right: 0.5rem;
+        }
+        .forgot-password {
+            text-align: right;
+            margin-bottom: 1.5rem;
+        }
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .input-group-text {
+            background-color: transparent;
+            border-right: none;
+        }
+        .form-control {
+            border-left: none;
+        }
+        .form-control:focus {
+            border-color: #ddd;
+        }
+        .input-group:focus-within {
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .input-group:focus-within .input-group-text,
+        .input-group:focus-within .form-control {
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h2>Welcome Back</h2>
+            <p>Please login to your account</p>
     </div>
 
-    <form method="POST" action="{{ route('login') }}" class="space-y-4">
+        <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" class="text-gray-700 dark:text-gray-300 mb-1 font-medium" />
-            <x-text-input id="email" class="block mt-1 w-full py-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 rounded-md shadow-sm" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <div class="form-floating">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-envelope"></i>
+                    </span>
+                    <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" 
+                           name="email" value="{{ old('email') }}" required autocomplete="email" autofocus 
+                           placeholder="Email Address">
+                </div>
+                @error('email')
+                    <span class="error-message" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                @enderror
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" class="text-gray-700 dark:text-gray-300 mb-1 font-medium" />
-            <x-text-input id="password" class="block mt-1 w-full py-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 rounded-md shadow-sm" type="password" name="password" required autocomplete="current-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            <div class="form-floating">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-lock"></i>
+                    </span>
+                    <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" 
+                           name="password" required autocomplete="current-password" placeholder="Password">
+                </div>
+                @error('password')
+                    <span class="error-message" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </span>
+                @enderror
         </div>
 
-        <!-- Login Button -->
-        <div class="mt-4">
-            <button type="submit" class="w-full py-2 px-4 border-0 rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                {{ __('Login') }}
-            </button>
-        </div>
-
-        <!-- Remember Me and Forgot Password -->
-        <div class="flex items-center justify-between mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="remember-me">
+                    <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                    <label class="form-check-label" for="remember">
+                        Remember Me
             </label>
-            
+                </div>
+                <div class="forgot-password">
             @if (Route::has('password.request'))
-                <a class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" href="{{ route('password.request') }}">
-                    {{ __('Forgot password?') }}
+                        <a href="{{ route('password.request') }}">
+                            Forgot Password?
                 </a>
             @endif
+                </div>
+        </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-login">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+            </button>
         </div>
     </form>
-</x-guest-layout>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

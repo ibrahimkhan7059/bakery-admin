@@ -39,24 +39,25 @@ class OrderController extends Controller
         // Get order statistics
         $stats = [
             'total' => Order::count(),
-            'pending' => Order::pending()->count(),
-            'processing' => Order::processing()->count(),
-            'completed' => Order::completed()->count(),
-            'cancelled' => Order::cancelled()->count(),
+            'pending' => Order::where('status', 'pending')->count(),
+            'processing' => Order::where('status', 'processing')->count(),
+            'completed' => Order::where('status', 'completed')->count(),
+            'cancelled' => Order::where('status', 'cancelled')->count(),
         ];
 
         // Get monthly sales data for chart
         $monthlySales = Order::select(
             DB::raw('MONTH(created_at) as month'),
             DB::raw('YEAR(created_at) as year'),
-            DB::raw('SUM(total_price) as total')
+            DB::raw('SUM(total_amount) as total')
         )
+        ->where('status', 'completed')
         ->groupBy('year', 'month')
         ->orderBy('year')
         ->orderBy('month')
         ->get();
 
-        $orders = $query->with('items')->latest()->paginate(10);
+        $orders = $query->with('products')->latest()->paginate(10);
         
         return view('admin.orders.index', compact('orders', 'stats', 'monthlySales'));
     }
@@ -71,54 +72,81 @@ class OrderController extends Controller
     // ✅ Store Order in Database
     public function store(Request $request)
     {
-        $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:15',
-            'delivery_address' => 'required|string',
-            'payment_method' => 'required|in:cash,card,online',
-            'priority' => 'required|in:1,2,3',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.notes' => 'nullable|string',
+        $validated = $request->validate([
+            'customer_name' => 'required|string|max:255|regex:/^[A-Za-z\s]+$/',
+            'customer_phone' => ['required', 'string', 'regex:/^(03[0-9]{9}|\+923[0-9]{9})$/'],
+            'delivery_address' => 'required|string|max:255',
+            'payment_method' => 'required|in:cash,gcash,bank_transfer',
+            'notes' => 'nullable|string|max:500',
+            'products' => 'required|array|min:1',
+            'products.*.id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1|max:100',
+        ], [
+            'customer_name.regex' => 'Customer name can only contain letters and spaces',
+            'customer_phone.regex' => 'Please enter a valid phone number',
+            'products.min' => 'Please add at least one product to the order',
+            'products.*.quantity.max' => 'Maximum quantity per product is 100',
         ]);
 
-        DB::beginTransaction();
-        try {
-            $order = Order::create([
-                'customer_name' => $request->customer_name,
-                'customer_phone' => $request->customer_phone,
-                'delivery_address' => $request->delivery_address,
-                'payment_method' => $request->payment_method,
-                'payment_status' => 'pending',
-                'priority' => $request->priority,
-                'notes' => $request->notes,
-                'status' => 'pending',
+        // Check stock availability
+        foreach ($validated['products'] as $productData) {
+            $product = Product::find($productData['id']);
+            if ($product->stock < $productData['quantity']) {
+                return back()->withErrors([
+                    'stock' => "Insufficient stock for {$product->name}. Available: {$product->stock}"
+                ]);
+            }
+        }
+
+        // Create order
+        $order = new Order();
+        $order->user_id = auth()->id();
+        $order->customer_name = $validated['customer_name'];
+        $order->customer_phone = $validated['customer_phone'];
+        $order->delivery_address = $validated['delivery_address'];
+        $order->status = 'pending';
+        $order->payment_status = 'pending';
+        $order->payment_method = $validated['payment_method'];
+        $order->notes = $validated['notes'];
+        $order->save();
+
+        // Attach products with quantities, prices, and discounts
+        foreach ($validated['products'] as $productData) {
+            $product = Product::find($productData['id']);
+            $quantity = $productData['quantity'];
+            
+            // Calculate discount based on quantity
+            $discount = 0;
+            if ($quantity >= 10) {
+                $discount = 0.10; // 10% discount for 10+ items
+            } elseif ($quantity >= 5) {
+                $discount = 0.05; // 5% discount for 5+ items
+            }
+            
+            $order->products()->attach($product->id, [
+                'quantity' => $quantity,
+                'price' => $product->price,
+                'discount' => $discount,
+                'product_name' => $product->name,
             ]);
 
-            $totalPrice = 0;
-            foreach ($request->items as $item) {
-                $product = Product::find($item['product_id']);
-                $orderItem = OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'quantity' => $item['quantity'],
-                    'price' => $product->price,
-                    'notes' => $item['notes'] ?? null,
-                ]);
-                $totalPrice += $orderItem->total;
-            }
-
-            $order->update(['total_price' => $totalPrice]);
-
-            DB::commit();
-            return redirect()->route('orders.index')->with('success', 'Order created successfully!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Failed to create order: ' . $e->getMessage());
+            // Update product stock
+            $product->stock -= $quantity;
+            $product->save();
         }
+
+        // Calculate total and update order
+        $order->total_amount = $order->calculateTotal();
+        $order->save();
+        $order->estimateDeliveryTime();
+
+        // Generate receipt
+        $receipt = $this->generateReceipt($order);
+        $order->payment_receipt = json_encode($receipt);
+        $order->save();
+
+        return redirect()->route('orders.show', $order)
+            ->with('success', 'Order placed successfully!');
     }
 
     // ✅ Show Edit Order Form
@@ -131,34 +159,151 @@ class OrderController extends Controller
     // ✅ Update Order Status
     public function update(Request $request, Order $order)
     {
-        $request->validate([
+        $validated = $request->validate([
+            'customer_name' => 'required|string|max:255|regex:/^[A-Za-z\s]+$/',
+            'customer_phone' => ['required', 'string', 'regex:/^(03[0-9]{9}|\+923[0-9]{9})$/'],
+            'delivery_address' => 'required|string|max:255',
+            'payment_method' => 'required|in:cash,gcash,bank_transfer',
             'status' => 'required|in:pending,processing,completed,cancelled',
-            'payment_status' => 'required|in:pending,paid,failed,refunded',
-            'priority' => 'required|in:1,2,3',
-            'notes' => 'nullable|string',
+            'payment_status' => 'required|in:pending,paid,failed',
+            'products' => 'required|array|min:1',
+            'products.*.id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1|max:100',
+            'notes' => 'nullable|string|max:500',
+        ], [
+            'customer_name.regex' => 'Customer name can only contain letters and spaces',
+            'customer_phone.regex' => 'Please enter a valid Pakistani phone number (e.g., 03001234567 or +923001234567)',
+            'products.min' => 'Please add at least one product to the order',
+            'products.*.quantity.max' => 'Maximum quantity per product is 100',
         ]);
 
-        $order->update([
-            'status' => $request->status,
-            'payment_status' => $request->payment_status,
-            'priority' => $request->priority,
-            'notes' => $request->notes,
-        ]);
+        // Check stock availability for new quantities
+        foreach ($validated['products'] as $productData) {
+            $product = Product::find($productData['id']);
+            $currentQuantity = $order->products->where('id', $product->id)->first()?->pivot->quantity ?? 0;
+            
+            if ($product->stock + $currentQuantity < $productData['quantity']) {
+                return back()->withErrors([
+                    'stock' => "Insufficient stock for {$product->name}. Available: " . ($product->stock + $currentQuantity)
+                ]);
+            }
+        }
 
-        return redirect()->route('orders.index')->with('success', 'Order updated successfully!');
+        // Update order details
+        $order->customer_name = $validated['customer_name'];
+        $order->customer_phone = $validated['customer_phone'];
+        $order->delivery_address = $validated['delivery_address'];
+        $order->payment_method = $validated['payment_method'];
+        $order->status = $validated['status'];
+        $order->payment_status = $validated['payment_status'];
+        $order->notes = $validated['notes'];
+
+        // Return stock for existing products
+        foreach ($order->products as $product) {
+            $product->stock += $product->pivot->quantity;
+            $product->save();
+        }
+
+        // Detach all existing products
+        $order->products()->detach();
+
+        // Attach updated products
+        foreach ($validated['products'] as $productData) {
+            $product = Product::find($productData['id']);
+            $quantity = $productData['quantity'];
+            
+            // Calculate discount based on quantity
+            $discount = 0;
+            if ($quantity >= 10) {
+                $discount = 0.10; // 10% discount for 10+ items
+            } elseif ($quantity >= 5) {
+                $discount = 0.05; // 5% discount for 5+ items
+            }
+            
+            $order->products()->attach($product->id, [
+                'quantity' => $quantity,
+                'price' => $product->price,
+                'discount' => $discount,
+                'product_name' => $product->name,
+            ]);
+
+            // Update product stock
+            $product->stock -= $quantity;
+            $product->save();
+        }
+
+        // Calculate total and update order
+        $order->total_amount = $order->calculateTotal();
+        $order->save();
+
+        // Generate new receipt if needed
+        if ($order->wasChanged(['total_amount', 'payment_method'])) {
+            $receipt = $this->generateReceipt($order);
+            $order->payment_receipt = json_encode($receipt);
+            $order->save();
+        }
+
+        return redirect()->route('orders.show', $order)
+            ->with('success', 'Order updated successfully!');
     }
 
-    // ✅ Soft Delete Order (Move to Trash)
+    // ✅ Delete Order
     public function destroy(Order $order)
     {
-        $order->delete(); // Soft delete
-        return redirect()->route('orders.index')->with('success', 'Order moved to trash!');
+        // Return stock for all products in the order
+        foreach ($order->products as $product) {
+            $product->stock += $product->pivot->quantity;
+            $product->save();
+        }
+
+        $order->delete();
+        return redirect()->route('orders.index')
+            ->with('success', 'Order deleted successfully!');
     }
 
     // ✅ Show Single Order Details
     public function show(Order $order)
     {
-        return view('admin.orders.show', compact('order'));
+        $order->load('products');
+        
+        // Generate receipt if not exists
+        if (!$order->payment_receipt) {
+            $receipt = $this->generateReceipt($order);
+            $order->payment_receipt = json_encode($receipt);
+            $order->save();
+        } else {
+            $receipt = json_decode($order->payment_receipt, true);
+        }
+        
+        return view('admin.orders.show', compact('order', 'receipt'));
+    }
+
+    public function printReceipt(Order $order)
+    {
+        $receipt = $this->generateReceipt($order);
+        return view('admin.orders.receipt', compact('order', 'receipt'));
+    }
+
+    private function generateReceipt(Order $order)
+    {
+        return [
+            'items' => $order->products->map(function ($product) {
+                return [
+                    'name' => $product->name,
+                    'quantity' => $product->pivot->quantity,
+                    'price' => $product->price,
+                    'discount' => $product->pivot->discount ?? 0,
+                    'total' => ($product->price * $product->pivot->quantity) - ($product->pivot->discount ?? 0),
+                    'notes' => $product->pivot->notes ?? null
+                ];
+            })->toArray(),
+            'subtotal' => $order->products->sum(function ($product) {
+                return $product->price * $product->pivot->quantity;
+            }),
+            'discount' => $order->products->sum(function ($product) {
+                return $product->pivot->discount ?? 0;
+            })
+        ];
     }
 
     public function bulkUpdate(Request $request)

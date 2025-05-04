@@ -1,137 +1,149 @@
 @extends('layouts.app')
 
+@section('title', 'Customer Details')
+
 @section('content')
 <div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar min-vh-100 shadow-lg">
-            <div class="position-sticky pt-4">
-                <div class="d-flex align-items-center justify-content-center mb-4">
-                    <div class="bg-white p-2 rounded-circle me-2 reflection">
-                        <svg class="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
-                        </svg>
-                    </div>
-                    <span class="text-white fw-bold fs-5">Bakery Admin</span>
-                </div>
-                
-                <!-- Modules Section Header -->
-                <div class="text-white px-3 py-2 mb-2">
-                    <h6 class="text-uppercase opacity-75 mb-0 fw-bold">Modules</h6>
-                </div>
-                
-                <ul class="nav flex-column p-3">
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('admin.dashboard') }}">
-                            <span class="me-3"><i class="bi bi-house-door-fill"></i></span>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('orders.index') }}">
-                            <span class="me-3"><i class="bi bi-box-seam-fill"></i></span>
-                            <span>Orders</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('categories.index') }}">
-                            <span class="me-3"><i class="bi bi-grid-fill"></i></span>
-                            <span>Categories</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('products.index') }}">
-                            <span class="me-3"><i class="bi bi-bag-fill"></i></span>
-                            <span>Products</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center active bg-white bg-opacity-10 rounded-lg text-white py-2 px-3 hover-lift" href="{{ route('customers.index') }}">
-                            <span class="me-3"><i class="bi bi-people-fill"></i></span>
-                            <span>Customers</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="#">
-                            <span class="me-3"><i class="bi bi-gear-fill"></i></span>
-                            <span>Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
+        <h1 class="h2 text-gray-800 fw-bold">Customer Details</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ route('customers.index') }}" class="btn btn-outline-secondary hover-lift me-2">
+                <i class="bi bi-arrow-left me-1"></i> Back to Customers
+            </a>
+            <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-primary hover-lift">
+                <i class="bi bi-pencil me-1"></i> Edit Customer
+            </a>
+        </div>
+    </div>
 
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 bg-gray-50">
-            <!-- Header -->
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2 text-gray-800 fw-bold">Customer Details</h1>
-            </div>
-
-            <!-- Customer Details Card -->
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="card border-0 shadow-sm rounded-lg mb-4">
-                        <div class="card-header bg-white py-3 border-bottom">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <h5 class="mb-0 fw-bold text-gray-800">Profile Information</h5>
-                                <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-pencil me-1"></i> Edit
-                                </a>
+    <div class="row g-4">
+        <!-- Customer Information -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-lg glass-card h-100">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="card-title mb-0">Customer Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle overflow-hidden me-3" style="width: 64px; height: 64px;">
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-primary bg-opacity-10">
+                                    <i class="bi bi-person-fill text-primary fs-3"></i>
+                                </div>
                             </div>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="row mb-3">
-                                <div class="col-md-4 fw-bold text-gray-700">Customer ID</div>
-                                <div class="col-md-8">#{{ $customer->id }}</div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-4 fw-bold text-gray-700">Name</div>
-                                <div class="col-md-8">{{ $customer->name }}</div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-4 fw-bold text-gray-700">Email</div>
-                                <div class="col-md-8">{{ $customer->email }}</div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-4 fw-bold text-gray-700">Phone</div>
-                                <div class="col-md-8">{{ $customer->phone ?? 'N/A' }}</div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-4 fw-bold text-gray-700">Registered On</div>
-                                <div class="col-md-8">{{ $customer->created_at->format('F d, Y') }}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 fw-bold text-gray-700">Last Updated</div>
-                                <div class="col-md-8">{{ $customer->updated_at->format('F d, Y') }}</div>
+                            <div>
+                                <h4 class="mb-1">{{ $customer->name }}</h4>
+                                <p class="text-muted mb-0">
+                                    <i class="bi bi-envelope me-1"></i> {{ $customer->email }}
+                                </p>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm rounded-lg">
-                        <div class="card-header bg-white py-3 border-bottom">
-                            <h5 class="mb-0 fw-bold text-gray-800">Actions</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Phone</label>
+                            <p class="mb-0">{{ $customer->phone ?? 'Not provided' }}</p>
                         </div>
-                        <div class="card-body p-4">
-                            <div class="d-grid gap-2">
-                                <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-primary">
-                                    <i class="bi bi-pencil me-2"></i> Edit Customer
-                                </a>
-                                <form action="{{ route('customers.destroy', $customer->id) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to delete this customer?')">
-                                        <i class="bi bi-trash me-2"></i> Delete Customer
-                                    </button>
-                                </form>
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Status</label>
+                            <p class="mb-0">
+                                @if($customer->status == 'active')
+                                    <span class="badge bg-success">Active</span>
+                                @else
+                                    <span class="badge bg-danger">Inactive</span>
+                                @endif
+                            </p>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-muted">Address</label>
+                            <p class="mb-0">{{ $customer->address ?? 'Not provided' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Member Since</label>
+                            <p class="mb-0">{{ $customer->created_at->format('M d, Y') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Last Updated</label>
+                            <p class="mb-0">{{ $customer->updated_at->format('M d, Y') }}</p>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
+
+        <!-- Customer Stats -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-lg glass-card h-100">
+                <div class="card-header bg-transparent border-0 pt-4">
+                    <h5 class="card-title mb-0">Customer Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-primary bg-opacity-10">
+                                <h6 class="text-primary mb-1">Total Orders</h6>
+                                <h3 class="mb-0">{{ $customer->orders_count }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-success bg-opacity-10">
+                                <h6 class="text-success mb-1">Total Spent</h6>
+                                <h3 class="mb-0">₨{{ number_format($customer->total_spent, 2) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Orders -->
+                    <div class="mt-4">
+                        <h6 class="mb-3">Recent Orders</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="border-0">Order ID</th>
+                                        <th class="border-0">Date</th>
+                                        <th class="border-0">Amount</th>
+                                        <th class="border-0">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($customer->orders()->latest()->take(5)->get() as $order)
+                                    <tr>
+                                        <td>#ORD-{{ $order->id }}</td>
+                                        <td>{{ $order->created_at->format('M d, Y') }}</td>
+                                        <td>₨{{ number_format($order->total_amount, 2) }}</td>
+                                        <td>
+                                            @if($order->status == 'pending')
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            @elseif($order->status == 'processing')
+                                                <span class="badge bg-info">Processing</span>
+                                            @elseif($order->status == 'completed')
+                                                <span class="badge bg-success">Completed</span>
+                                            @elseif($order->status == 'cancelled')
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="4" class="text-center py-3">No orders found</td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        @if($customer->orders_count > 5)
+                        <div class="text-center mt-3">
+                            <a href="{{ route('customers.orders', $customer->id) }}" class="btn btn-outline-primary hover-lift">
+                                View All Orders
+                            </a>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection 

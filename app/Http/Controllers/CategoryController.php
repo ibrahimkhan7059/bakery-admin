@@ -37,8 +37,13 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/|unique:categories,name',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|dimensions:min_width=100,min_height=100'
+        ], [
+            'name.regex' => 'Category name can only contain letters and spaces.',
+            'name.unique' => 'This category name already exists.',
+            'image.dimensions' => 'The image must be at least 100x100 pixels.',
+            'image.max' => 'The image size must not exceed 2MB.'
         ]);
 
         $category = new Category();
@@ -79,8 +84,13 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/|unique:categories,name,' . $category->id,
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|dimensions:min_width=100,min_height=100'
+        ], [
+            'name.regex' => 'Category name can only contain letters and spaces.',
+            'name.unique' => 'This category name already exists.',
+            'image.dimensions' => 'The image must be at least 100x100 pixels.',
+            'image.max' => 'The image size must not exceed 2MB.'
         ]);
 
         $category->name = $request->name;

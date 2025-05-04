@@ -15,28 +15,37 @@ class Order extends Model
     
 
     protected $fillable = [
+        'user_id',
         'customer_name',
         'customer_phone',
         'delivery_address',
-        'notes',
         'status',
-        'order_date',
-        'payment_method',
+        'total_amount',
         'payment_status',
+        'payment_method',
+        'payment_receipt',
+        'delivery_time',
+        'estimated_delivery_time',
         'priority',
-        'total_price'
+        'notes'
     ];
 
     protected $casts = [
-        'order_date' => 'datetime',
-        'total_price' => 'decimal:2',
-        'priority' => 'integer'
+        'delivery_time' => 'datetime',
+        'estimated_delivery_time' => 'datetime',
     ];
 
     // Relationships
-    public function items(): HasMany
+    public function user()
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->belongsTo(User::class);
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'order_items')
+            ->withPivot('quantity', 'price', 'discount')
+            ->withTimestamps();
     }
 
     // Scopes for filtering
@@ -121,9 +130,82 @@ class Order extends Model
 
     public function calculateTotal()
     {
-        return $this->items->sum(function($item) {
-            return $item->quantity * $item->price;
-        });
+        $total = 0;
+        foreach ($this->products as $product) {
+            $quantity = $product->pivot->quantity;
+            $price = $product->pivot->price;
+            $discount = $product->pivot->discount ?? 0;
+            
+            // Apply bulk discount if applicable
+            if ($quantity >= 10) {
+                $discount = max($discount, 0.10); // 10% discount for 10+ items
+            } elseif ($quantity >= 5) {
+                $discount = max($discount, 0.05); // 5% discount for 5+ items
+            }
+            
+            $total += ($price * $quantity) * (1 - $discount);
+        }
+        return $total;
+    }
+
+    public function updateStock()
+    {
+        foreach ($this->products as $product) {
+            $quantity = $product->pivot->quantity;
+            $product->decrement('stock', $quantity);
+        }
+    }
+
+    public function estimateDeliveryTime()
+    {
+        // Base delivery time: 30 minutes
+        $baseTime = now()->addMinutes(30);
+        
+        // Add time based on order size
+        $totalItems = $this->products->sum('pivot.quantity');
+        if ($totalItems > 20) {
+            $baseTime->addMinutes(15);
+        } elseif ($totalItems > 10) {
+            $baseTime->addMinutes(10);
+        }
+        
+        $this->estimated_delivery_time = $baseTime;
+        $this->save();
+    }
+
+    public function generateReceipt()
+    {
+        $receipt = [
+            'order_id' => $this->id,
+            'date' => $this->created_at->format('Y-m-d H:i:s'),
+            'customer' => $this->user->name,
+            'items' => [],
+            'subtotal' => 0,
+            'discount' => 0,
+            'total' => $this->total_amount,
+            'payment_status' => $this->payment_status,
+            'estimated_delivery' => $this->estimated_delivery_time->format('Y-m-d H:i:s'),
+        ];
+
+        foreach ($this->products as $product) {
+            $quantity = $product->pivot->quantity;
+            $price = $product->pivot->price;
+            $discount = $product->pivot->discount ?? 0;
+            $itemTotal = ($price * $quantity) * (1 - $discount);
+
+            $receipt['items'][] = [
+                'name' => $product->name,
+                'quantity' => $quantity,
+                'price' => $price,
+                'discount' => $discount * 100 . '%',
+                'total' => $itemTotal,
+            ];
+
+            $receipt['subtotal'] += $price * $quantity;
+            $receipt['discount'] += ($price * $quantity) * $discount;
+        }
+
+        return $receipt;
     }
 }
 

@@ -1,107 +1,54 @@
 @extends('layouts.app')
 
+@section('title', 'Create Category')
+
 @section('content')
 <div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar min-vh-100 shadow-lg">
-            <div class="position-sticky pt-4">
-                <div class="d-flex align-items-center justify-content-center mb-4">
-                    <div class="bg-white p-2 rounded-circle me-2 reflection">
-                        <svg class="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
-                        </svg>
-                    </div>
-                    <span class="text-white fw-bold fs-5">Bakery Admin</span>
-                </div>
-                
-                <!-- Modules Section Header -->
-                <div class="text-white px-3 py-2 mb-2">
-                    <h6 class="text-uppercase opacity-75 mb-0 fw-bold">Modules</h6>
-                </div>
-                
-                <ul class="nav flex-column p-3">
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('admin.dashboard') }}">
-                            <span class="me-3"><i class="bi bi-house-door-fill"></i></span>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('orders.index') }}">
-                            <span class="me-3"><i class="bi bi-box-seam-fill"></i></span>
-                            <span>Orders</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center active bg-white bg-opacity-10 rounded-lg text-white py-2 px-3 hover-lift" href="{{ route('categories.index') }}">
-                            <span class="me-3"><i class="bi bi-grid-fill"></i></span>
-                            <span>Categories</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('products.index') }}">
-                            <span class="me-3"><i class="bi bi-bag-fill"></i></span>
-                            <span>Products</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="{{ route('customers.index') }}">
-                            <span class="me-3"><i class="bi bi-people-fill"></i></span>
-                            <span>Customers</span>
-                        </a>
-                    </li>
-                    <li class="nav-item mb-3">
-                        <a class="nav-link d-flex align-items-center text-white py-2 px-3 transition-all hover:bg-white hover:bg-opacity-10 rounded-lg hover-lift" href="#">
-                            <span class="me-3"><i class="bi bi-gear-fill"></i></span>
-                            <span>Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
+        <h1 class="h2 text-gray-800 fw-bold">Create Category</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary hover-lift">
+                <i class="bi bi-arrow-left me-1"></i> Back to Categories
+            </a>
+        </div>
+    </div>
 
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 bg-gray-50">
-            <!-- Header -->
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2 text-gray-800 fw-bold">Create New Category</h1>
-            </div>
-
-            <div class="card border-0 shadow-sm rounded-lg">
-                <div class="card-body">
-                    <form action="{{ route('categories.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-
+    <div class="card border-0 shadow-sm rounded-lg glass-card">
+        <div class="card-body">
+            <form action="{{ route('categories.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="row">
+                    <div class="col-md-6">
                         <div class="mb-4">
-                            <label class="form-label">Category Name</label>
+                            <label class="form-label">Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required>
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-
+                    </div>
+                    <div class="col-md-6">
                         <div class="mb-4">
                             <label class="form-label">Category Image</label>
                             <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*">
+                            <small class="text-muted">Recommended size: 300x300px. Max file size: 2MB</small>
                             @error('image')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <small class="text-muted">Recommended size: 200x200 pixels</small>
                         </div>
-
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save me-2"></i>Create Category
-                            </button>
-                            <a href="{{ route('categories.index') }}" class="btn btn-secondary">
-                                <i class="bi bi-x-lg me-2"></i>Cancel
-                            </a>
-                        </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
-        </main>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary hover-lift">
+                        <i class="bi bi-save me-1"></i> Create Category
+                    </button>
+                    <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary hover-lift">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 @endsection
