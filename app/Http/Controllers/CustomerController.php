@@ -37,18 +37,26 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'phone' => ['required', 'string', 'max:15'],
+            'name' => ['required', 'string', 'min:3', 'max:50', 'regex:/^[A-Za-z\s]+$/'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users', 'regex:/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/'],
+            'phone' => ['required', 'string', 'regex:/^(\+92|0)[0-9]{10}$/'],
+            'address' => ['required', 'string', 'min:10', 'max:500'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ], [
+            'name.regex' => 'Name can only contain letters and spaces.',
+            'email.regex' => 'Please enter a valid email address.',
+            'phone.regex' => 'Please enter a valid Pakistani phone number (e.g., +923001234567 or 03001234567).',
+            'address.min' => 'Address must be at least 10 characters long.',
+            'address.max' => 'Address cannot exceed 500 characters.',
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
+            'address' => $request->address,
             'password' => Hash::make($request->password),
-            'role' => 'customer', // Always set role to 'customer' for new users created here
+            'role' => 'customer',
         ]);
 
         // Send welcome notification to the new customer
@@ -98,16 +106,24 @@ class CustomerController extends Controller
         }
         
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $customer->id],
-            'phone' => ['required', 'string', 'max:15'],
+            'name' => ['required', 'string', 'min:3', 'max:50', 'regex:/^[A-Za-z\s]+$/'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $customer->id, 'regex:/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/'],
+            'phone' => ['required', 'string', 'regex:/^(\+92|0)[0-9]{10}$/'],
+            'address' => ['required', 'string', 'min:10', 'max:500'],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+        ], [
+            'name.regex' => 'Name can only contain letters and spaces.',
+            'email.regex' => 'Please enter a valid email address.',
+            'phone.regex' => 'Please enter a valid Pakistani phone number (e.g., +923001234567 or 03001234567).',
+            'address.min' => 'Address must be at least 10 characters long.',
+            'address.max' => 'Address cannot exceed 500 characters.',
         ]);
 
         $data = [
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
+            'address' => $request->address,
         ];
 
         if ($request->filled('password')) {

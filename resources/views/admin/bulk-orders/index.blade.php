@@ -6,10 +6,12 @@
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Bulk Orders</h1>
-        <a href="{{ route('bulk-orders.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> New Bulk Order
-        </a>
+        <div></div>
+        <div>
+            <a href="{{ route('bulk-orders.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create New Order
+            </a>
+        </div>
     </div>
 
     <!-- Statistics Cards -->
@@ -198,12 +200,7 @@
                                         <small class="text-muted">{{ $order->delivery_time->format('h:i A') }}</small>
                                     @endif
                                 </td>
-                                <td>
-                                    <div>₱{{ number_format($order->total_amount, 2) }}</div>
-                                    @if($order->advance_payment > 0)
-                                        <small class="text-muted">Advance: ₱{{ number_format($order->advance_payment, 2) }}</small>
-                                    @endif
-                                </td>
+                                <td>₨{{ number_format($order->total_amount, 2) }}</td>
                                 <td>
                                     <span class="badge bg-{{ $order->status === 'completed' ? 'success' : ($order->status === 'cancelled' ? 'danger' : ($order->status === 'processing' ? 'info' : ($order->status === 'confirmed' ? 'secondary' : 'warning'))) }}">
                                         {{ $order->formatted_status }}
@@ -215,22 +212,31 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ route('bulk-orders.show', $order) }}" class="btn btn-info btn-sm" title="View">
-                                            <i class="fas fa-eye"></i>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <a href="{{ route('bulk-orders.show', $order) }}" 
+                                            class="btn btn-light btn-sm hover-lift" 
+                                            title="View Details">
+                                            <i class="bi bi-eye-fill"></i>
                                         </a>
                                         @if($order->status !== 'completed')
-                                            <a href="{{ route('bulk-orders.edit', $order) }}" class="btn btn-primary btn-sm" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form action="{{ route('bulk-orders.destroy', $order) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm('Are you sure you want to delete this order?')">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                        <a href="{{ route('bulk-orders.edit', $order) }}" 
+                                            class="btn btn-light btn-sm hover-lift" 
+                                            title="Edit Order">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
                                         @endif
+                                        <form action="{{ route('bulk-orders.destroy', $order) }}" 
+                                            method="POST" 
+                                            class="d-inline"
+                                            onsubmit="return confirm('Are you sure you want to delete this order?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                class="btn btn-light btn-sm hover-lift" 
+                                                title="Delete Order">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

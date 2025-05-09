@@ -64,20 +64,24 @@ class BulkOrderController extends Controller
     {
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:20',
+            'customer_phone' => ['required', 'string', 'regex:/^(03[0-9]{9}|\+923[0-9]{9})$/'],
             'customer_email' => 'nullable|email|max:255',
-            'delivery_address' => 'required|string|max:255',
+            'delivery_address' => 'required|string|max:500',
             'delivery_date' => 'required|date|after_or_equal:today',
             'delivery_time' => 'nullable|date_format:H:i',
             'order_type' => 'required|in:birthday,party,corporate,other',
-            'event_details' => 'nullable|string',
+            'event_details' => 'nullable|string|max:1000',
             'payment_method' => 'required|in:cash,gcash,bank_transfer',
             'advance_payment' => 'nullable|numeric|min:0',
-            'special_instructions' => 'nullable|string',
-            'products' => 'required|array',
+            'special_instructions' => 'nullable|string|max:1000',
+            'products' => 'required|array|min:1',
             'products.*.id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
-            'products.*.notes' => 'nullable|string',
+            'products.*.notes' => 'nullable|string|max:500',
+        ], [
+            'customer_phone.regex' => 'Please enter a valid Pakistani phone number (e.g., 03001234567 or +923001234567)',
+            'delivery_date.after_or_equal' => 'Delivery date must be today or a future date',
+            'products.min' => 'Please add at least one product to the order',
         ]);
 
         try {
@@ -85,11 +89,11 @@ class BulkOrderController extends Controller
 
             // Check stock availability
             foreach ($validated['products'] as $productData) {
-                $product = Product::find($productData['id']);
+                $product = Product::findOrFail($productData['id']);
                 if ($product->stock < $productData['quantity']) {
                     return back()->withErrors([
                         'stock' => "Insufficient stock for {$product->name}. Available: {$product->stock}"
-                    ]);
+                    ])->withInput();
                 }
             }
 
@@ -109,11 +113,14 @@ class BulkOrderController extends Controller
             $bulkOrder->special_instructions = $validated['special_instructions'];
             $bulkOrder->status = 'pending';
             $bulkOrder->payment_status = $validated['advance_payment'] > 0 ? 'partial' : 'pending';
+            $bulkOrder->total_amount = 0; // Initialize with 0, will be updated after items are added
             $bulkOrder->save();
+
+            $totalAmount = 0;
 
             // Attach products and update stock
             foreach ($validated['products'] as $productData) {
-                $product = Product::find($productData['id']);
+                $product = Product::findOrFail($productData['id']);
                 $quantity = $productData['quantity'];
                 
                 // Calculate discount based on quantity
@@ -125,6 +132,9 @@ class BulkOrderController extends Controller
                 } elseif ($quantity >= 10) {
                     $discount = 0.05; // 5% discount for 10+ items
                 }
+
+                $itemTotal = ($product->price * $quantity) * (1 - $discount);
+                $totalAmount += $itemTotal;
 
                 $bulkOrder->items()->create([
                     'product_id' => $product->id,
@@ -140,8 +150,8 @@ class BulkOrderController extends Controller
                 $product->save();
             }
 
-            // Calculate and update total amount
-            $bulkOrder->total_amount = $bulkOrder->calculateTotal();
+            // Update total amount
+            $bulkOrder->total_amount = $totalAmount;
             $bulkOrder->save();
 
             DB::commit();
@@ -151,7 +161,8 @@ class BulkOrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Error creating bulk order: ' . $e->getMessage()]);
+            \Log::error('Bulk Order Creation Error: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Error creating bulk order. Please try again.'])->withInput();
         }
     }
 
@@ -181,41 +192,39 @@ class BulkOrderController extends Controller
 
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:20',
+            'customer_phone' => ['required', 'string', 'regex:/^(03[0-9]{9}|\+923[0-9]{9})$/'],
             'customer_email' => 'nullable|email|max:255',
-            'delivery_address' => 'required|string|max:255',
+            'delivery_address' => 'required|string|max:500',
             'delivery_date' => 'required|date',
             'delivery_time' => 'nullable|date_format:H:i',
             'order_type' => 'required|in:birthday,party,corporate,other',
-            'event_details' => 'nullable|string',
+            'event_details' => 'nullable|string|max:1000',
             'payment_method' => 'required|in:cash,gcash,bank_transfer',
             'advance_payment' => 'nullable|numeric|min:0',
-            'special_instructions' => 'nullable|string',
-            'status' => 'required|in:pending,confirmed,processing,completed,cancelled',
             'payment_status' => 'required|in:pending,partial,paid',
-            'products' => 'required|array',
+            'special_instructions' => 'nullable|string|max:1000',
+            'products' => 'required|array|min:1',
             'products.*.id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
-            'products.*.notes' => 'nullable|string',
+            'products.*.notes' => 'nullable|string|max:500',
+        ], [
+            'customer_phone.regex' => 'Please enter a valid Pakistani phone number (e.g., 03001234567 or +923001234567)',
+            'products.min' => 'Please add at least one product to the order',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Return stock for existing items
-            foreach ($bulkOrder->items as $item) {
-                $product = $item->product;
-                $product->stock += $item->quantity;
-                $product->save();
-            }
-
             // Check stock availability for new quantities
             foreach ($validated['products'] as $productData) {
-                $product = Product::find($productData['id']);
-                if ($product->stock < $productData['quantity']) {
+                $product = Product::findOrFail($productData['id']);
+                $existingItem = $bulkOrder->items()->where('product_id', $product->id)->first();
+                $quantityDifference = $productData['quantity'] - ($existingItem ? $existingItem->quantity : 0);
+                
+                if ($product->stock < $quantityDifference) {
                     return back()->withErrors([
                         'stock' => "Insufficient stock for {$product->name}. Available: {$product->stock}"
-                    ]);
+                    ])->withInput();
                 }
             }
 
@@ -230,17 +239,18 @@ class BulkOrderController extends Controller
             $bulkOrder->event_details = $validated['event_details'];
             $bulkOrder->payment_method = $validated['payment_method'];
             $bulkOrder->advance_payment = $validated['advance_payment'] ?? 0;
-            $bulkOrder->special_instructions = $validated['special_instructions'];
-            $bulkOrder->status = $validated['status'];
             $bulkOrder->payment_status = $validated['payment_status'];
+            $bulkOrder->special_instructions = $validated['special_instructions'];
+            $bulkOrder->save();
 
-            // Delete existing items
-            $bulkOrder->items()->delete();
+            // Handle products
+            $totalAmount = 0;
+            $existingProductIds = [];
 
-            // Create new items and update stock
             foreach ($validated['products'] as $productData) {
-                $product = Product::find($productData['id']);
+                $product = Product::findOrFail($productData['id']);
                 $quantity = $productData['quantity'];
+                $existingItem = $bulkOrder->items()->where('product_id', $product->id)->first();
                 
                 // Calculate discount based on quantity
                 $discount = 0;
@@ -252,22 +262,54 @@ class BulkOrderController extends Controller
                     $discount = 0.05; // 5% discount for 10+ items
                 }
 
-                $bulkOrder->items()->create([
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'quantity' => $quantity,
-                    'price' => $product->price,
-                    'discount' => $discount,
-                    'notes' => $productData['notes'] ?? null,
-                ]);
+                $itemTotal = ($product->price * $quantity) * (1 - $discount);
+                $totalAmount += $itemTotal;
 
-                // Update product stock
-                $product->stock -= $quantity;
-                $product->save();
+                if ($existingItem) {
+                    // Update existing item
+                    $quantityDifference = $quantity - $existingItem->quantity;
+                    $existingItem->update([
+                        'quantity' => $quantity,
+                        'price' => $product->price,
+                        'discount' => $discount,
+                        'notes' => $productData['notes'] ?? null,
+                    ]);
+
+                    // Update product stock
+                    $product->stock -= $quantityDifference;
+                    $product->save();
+                } else {
+                    // Create new item
+                    $bulkOrder->items()->create([
+                        'product_id' => $product->id,
+                        'product_name' => $product->name,
+                        'quantity' => $quantity,
+                        'price' => $product->price,
+                        'discount' => $discount,
+                        'notes' => $productData['notes'] ?? null,
+                    ]);
+
+                    // Update product stock
+                    $product->stock -= $quantity;
+                    $product->save();
+                }
+
+                $existingProductIds[] = $product->id;
             }
 
-            // Calculate and update total amount
-            $bulkOrder->total_amount = $bulkOrder->calculateTotal();
+            // Remove items that are no longer in the order
+            $removedItems = $bulkOrder->items()->whereNotIn('product_id', $existingProductIds)->get();
+            foreach ($removedItems as $item) {
+                $product = Product::find($item->product_id);
+                if ($product) {
+                    $product->stock += $item->quantity;
+                    $product->save();
+                }
+                $item->delete();
+            }
+
+            // Update total amount
+            $bulkOrder->total_amount = $totalAmount;
             $bulkOrder->save();
 
             DB::commit();
@@ -277,7 +319,8 @@ class BulkOrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Error updating bulk order: ' . $e->getMessage()]);
+            \Log::error('Bulk Order Update Error: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Error updating bulk order. Please try again.'])->withInput();
         }
     }
 
@@ -313,6 +356,12 @@ class BulkOrderController extends Controller
 
     public function updateStatus(Request $request, BulkOrder $bulkOrder)
     {
+        if ($request->method() !== 'POST') {
+            return response()->json([
+                'error' => 'Method not allowed. Please use POST method.'
+            ], 405);
+        }
+
         $request->validate([
             'status' => 'required|in:pending,confirmed,processing,completed,cancelled'
         ]);
@@ -328,5 +377,13 @@ class BulkOrderController extends Controller
         }
 
         return redirect()->back()->with('success', 'Bulk order status updated successfully.');
+    }
+
+    /**
+     * Display the invoice for a bulk order.
+     */
+    public function invoice(BulkOrder $bulkOrder)
+    {
+        return view('admin.bulk-orders.invoice', compact('bulkOrder'));
     }
 } 

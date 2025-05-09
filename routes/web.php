@@ -78,7 +78,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/bulk-orders/{bulkOrder}/edit', [BulkOrderController::class, 'edit'])->name('bulk-orders.edit');
     Route::put('/bulk-orders/{bulkOrder}', [BulkOrderController::class, 'update'])->name('bulk-orders.update');
     Route::delete('/bulk-orders/{bulkOrder}', [BulkOrderController::class, 'destroy'])->name('bulk-orders.destroy');
-    Route::post('/bulk-orders/{bulkOrder}/status', [BulkOrderController::class, 'updateStatus'])->name('bulk-orders.update-status');
+    Route::match(['post'], '/bulk-orders/{bulkOrder}/status', [BulkOrderController::class, 'updateStatus'])->name('bulk-orders.update-status');
+    Route::get('/bulk-orders/{bulkOrder}/invoice', [BulkOrderController::class, 'invoice'])->name('bulk-orders.invoice');
 
     // Customer Routes
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');

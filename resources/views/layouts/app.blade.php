@@ -144,7 +144,7 @@
                 border-radius: 10px;
                 overflow: hidden;
             }
-
+            
             .table thead th {
                 background-color: var(--dark-color);
                 color: white;
@@ -270,7 +270,7 @@
                     </div>
                 </div>
 
-                <!-- Page Content -->
+            <!-- Page Content -->
                 <div class="content">
                     @yield('content')
                 </div>

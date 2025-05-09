@@ -16,7 +16,7 @@
     <div class="card border-0 shadow-sm rounded-lg glass-card">
         <div class="card-body">
             <form action="{{ route('orders.store') }}" method="POST" id="orderForm">
-                @csrf
+        @csrf
 
                 <div class="row">
                     <div class="col-md-6">
@@ -79,7 +79,7 @@
                     @error('notes')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                </div>
+        </div>
 
                 <div class="mb-4">
                     <label class="form-label">Products <span class="text-danger">*</span></label>
@@ -115,7 +115,7 @@
                     <button type="button" class="btn btn-outline-primary mt-2 hover-lift" id="add-product">
                         <i class="bi bi-plus-lg me-1"></i> Add Product
                     </button>
-                </div>
+        </div>
 
                 <div class="row">
                     <div class="col-md-6">
@@ -130,7 +130,7 @@
                             <input type="text" class="form-control" id="total" readonly>
                         </div>
                     </div>
-                </div>
+        </div>
 
                 <div class="mt-4">
                     <button type="submit" class="btn btn-primary hover-lift">

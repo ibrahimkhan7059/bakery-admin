@@ -35,7 +35,7 @@ class ProductController extends Controller
 
     // 📌 Store product in database
     public function store(Request $request)
-    {
+{
         try {
             \Log::info('Starting product creation process');
             
@@ -45,7 +45,7 @@ class ProductController extends Controller
                 'description' => 'required|string|min:10|max:1000',
                 'price' => 'required|numeric|min:0|max:999999.99',
                 'stock' => 'required|integer|min:0|max:1000',
-                'category_id' => 'required|exists:categories,id',
+        'category_id' => 'required|exists:categories,id',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|dimensions:min_width=100,min_height=100'
             ], [
                 'name.regex' => 'Product name can only contain letters, spaces, and brackets',
@@ -68,18 +68,18 @@ class ProductController extends Controller
             $product->category_id = $validated['category_id'];
 
             // Handle image upload
-            if ($request->hasFile('image')) {
+    if ($request->hasFile('image')) {
                 \Log::info('Image file received', [
                     'name' => $request->file('image')->getClientOriginalName(),
                     'size' => $request->file('image')->getSize(),
                     'mime' => $request->file('image')->getMimeType()
                 ]);
                 
-                $image = $request->file('image');
+        $image = $request->file('image');
                 $filename = time() . '_' . $image->getClientOriginalName();
 
                 // Create image manager with GD driver
-                $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new Driver());
                 
                 // Read the image
                 $img = $manager->read($image->getRealPath());
@@ -159,7 +159,7 @@ class ProductController extends Controller
                 ->withInput()
                 ->with('error', 'Error creating product: ' . $e->getMessage());
         }
-    }
+}
 
     // 📌 Show edit product form
     public function edit(Product $product)
@@ -170,7 +170,7 @@ class ProductController extends Controller
 
     // 📌 Update product in database
     public function update(Request $request, Product $product)
-    {
+{
         try {
             \Log::info('Starting product update process', ['product_id' => $product->id]);
             
@@ -179,7 +179,7 @@ class ProductController extends Controller
                 'description' => 'required|string|min:10|max:1000',
                 'price' => 'required|numeric|min:0|max:999999.99',
                 'stock' => 'required|integer|min:0|max:1000',
-                'category_id' => 'required|exists:categories,id',
+        'category_id' => 'required|exists:categories,id',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|dimensions:min_width=100,min_height=100'
             ], [
                 'name.regex' => 'Product name can only contain letters, spaces, and brackets',
@@ -197,7 +197,7 @@ class ProductController extends Controller
             $product->stock = $validated['stock'];
             $product->category_id = $validated['category_id'];
 
-            if ($request->hasFile('image')) {
+    if ($request->hasFile('image')) {
                 \Log::info('New image file received', [
                     'name' => $request->file('image')->getClientOriginalName(),
                     'size' => $request->file('image')->getSize(),
@@ -207,13 +207,13 @@ class ProductController extends Controller
                 // Delete old image if exists
                 if ($product->image) {
                     Storage::disk('public')->delete($product->image);
-                }
+        }
 
-                $image = $request->file('image');
+        $image = $request->file('image');
                 $filename = time() . '_' . $image->getClientOriginalName();
 
                 // Create image manager with GD driver
-                $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new Driver());
                 
                 // Read the image
                 $img = $manager->read($image->getRealPath());
@@ -292,7 +292,7 @@ class ProductController extends Controller
                 ->withInput()
                 ->with('error', 'Error updating product: ' . $e->getMessage());
         }
-    }
+}
 
     // 📌 Delete product and remove image
     public function destroy(Product $product)
@@ -324,8 +324,8 @@ class ProductController extends Controller
     }
 
     public function deleteImage(Product $product)
-    {
-        if ($product->image) {
+{
+    if ($product->image) {
             Storage::disk('public')->delete($product->image);
             $product->image = null;
             $product->save();
@@ -333,5 +333,5 @@ class ProductController extends Controller
 
         return redirect()->route('products.edit', $product)
             ->with('success', 'Product image deleted successfully.');
-    }
+}
 }
