@@ -5,7 +5,7 @@
 @section('content')
 <div class="container-fluid">
             <!-- Stats Cards -->
-            <div class="row g-4 mb-5">
+            <div class="row g-4 mb-3">       
                 <div class="col-md-4">
                     <div class="card border-0 shadow-sm rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-md hover-lift reflection">
                         <div class="card-body position-relative p-4">
@@ -84,7 +84,7 @@
                                         <tr>
                                             <th class="border-0">Order ID</th>
                                             <th class="border-0">Customer</th>
-                                            <th class="border-0">Products</th>
+                                            
                                             <th class="border-0">Date</th>
                                             <th class="border-0">Amount</th>
                                             <th class="border-0">Status</th>
@@ -96,9 +96,9 @@
                                 <tr>
                                     <td>#ORD-{{ $order->id }}</td>
                                     <td>{{ $order->customer_name }}</td>
-                                    <td>{{ $order->product }}</td>
+                                    
                                     <td>{{ $order->created_at->format('M d, Y') }}</td>
-                                    <td>₨{{ number_format($order->total_amount, 2) }}</td>
+                                    <td>Rs{{ number_format($order->total_amount, 2) }}</td>
                                     <td>
                                         @if($order->status == 'pending')
                                             <span class="badge bg-warning text-dark">Pending</span>

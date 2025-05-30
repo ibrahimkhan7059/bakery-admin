@@ -171,127 +171,45 @@ class ProductController extends Controller
     // 📌 Update product in database
     public function update(Request $request, Product $product)
 {
-        try {
-            \Log::info('Starting product update process', ['product_id' => $product->id]);
-            
-            $validated = $request->validate([
-                'name' => 'required|string|max:255|regex:/^[A-Za-z\s\(\)\[\]]+$/',
-                'description' => 'required|string|min:10|max:1000',
-                'price' => 'required|numeric|min:0|max:999999.99',
-                'stock' => 'required|integer|min:0|max:1000',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|regex:/^[^0-9]+$/',
         'category_id' => 'required|exists:categories,id',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|dimensions:min_width=100,min_height=100'
-            ], [
-                'name.regex' => 'Product name can only contain letters, spaces, and brackets',
-                'description.min' => 'Description must be at least 10 characters long',
-                'description.max' => 'Description cannot exceed 1000 characters',
-                'price.max' => 'Price cannot exceed ₨999,999.99',
-                'stock.max' => 'Stock cannot exceed 1000 units',
-                'image.dimensions' => 'Image dimensions must be at least 100x100 pixels',
-                'image.max' => 'Image size cannot exceed 2MB'
-            ]);
-
-            $product->name = $validated['name'];
-            $product->description = $validated['description'];
-            $product->price = $validated['price'];
-            $product->stock = $validated['stock'];
-            $product->category_id = $validated['category_id'];
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'description' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_active' => 'boolean'
+        ], [
+            'name.required' => 'Product name is required',
+            'name.max' => 'Product name cannot exceed 255 characters',
+            'name.regex' => 'Product name cannot contain numbers. Letters, spaces, and special characters are allowed.',
+            'category_id.required' => 'Please select a category',
+            'category_id.exists' => 'Selected category is invalid',
+            'price.required' => 'Price is required',
+            'price.numeric' => 'Price must be a number',
+            'price.min' => 'Price cannot be negative',
+            'stock.required' => 'Stock quantity is required',
+            'stock.integer' => 'Stock must be a whole number',
+            'stock.min' => 'Stock cannot be negative',
+            'description.required' => 'Product description is required',
+            'image.image' => 'File must be an image',
+            'image.mimes' => 'Image must be in jpeg, png, jpg, or gif format',
+            'image.max' => 'Image size cannot exceed 2MB'
+    ]);
 
     if ($request->hasFile('image')) {
-                \Log::info('New image file received', [
-                    'name' => $request->file('image')->getClientOriginalName(),
-                    'size' => $request->file('image')->getSize(),
-                    'mime' => $request->file('image')->getMimeType()
-                ]);
-                
-                // Delete old image if exists
-                if ($product->image) {
-                    Storage::disk('public')->delete($product->image);
+            // Delete old image
+            if ($product->image) {
+                Storage::delete($product->image);
+            }
+            // Store new image
+            $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
-        $image = $request->file('image');
-                $filename = time() . '_' . $image->getClientOriginalName();
+        $product->update($validated);
 
-                // Create image manager with GD driver
-        $manager = new ImageManager(new Driver());
-                
-                // Read the image
-                $img = $manager->read($image->getRealPath());
-                
-                // Get original dimensions
-                $width = $img->width();
-                $height = $img->height();
-                
-                // Calculate new dimensions while maintaining aspect ratio
-                $maxDimension = 800;
-                if ($width > $height) {
-                    $newWidth = $maxDimension;
-                    $newHeight = (int) ($height * ($maxDimension / $width));
-                } else {
-                    $newHeight = $maxDimension;
-                    $newWidth = (int) ($width * ($maxDimension / $height));
-                }
-                
-                // Resize image
-                $img->resize($newWidth, $newHeight, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
-                
-                // Save compressed image with higher compression
-                $path = 'products/' . $filename;
-                $fullPath = storage_path('app/public/' . $path);
-                
-                \Log::info('Attempting to save new image', [
-                    'path' => $path,
-                    'full_path' => $fullPath,
-                    'original_size' => $image->getSize(),
-                    'new_dimensions' => [$newWidth, $newHeight]
-                ]);
-                
-                // Ensure directory exists
-                if (!file_exists(dirname($fullPath))) {
-                    mkdir(dirname($fullPath), 0755, true);
-                }
-                
-                // Save with higher compression (60% quality)
-                Storage::disk('public')->put($path, $img->toJpeg(60));
-                
-                \Log::info('New image saved successfully', [
-                    'path' => $path,
-                    'exists' => Storage::disk('public')->exists($path),
-                    'new_size' => Storage::disk('public')->size($path)
-                ]);
-                
-                $product->image = $path;
-            }
-
-            if ($product->save()) {
-                \Log::info('Product updated successfully', [
-                    'id' => $product->id,
-                    'image' => $product->image
-                ]);
-                
-                return redirect()->route('products.index')
-                    ->with('success', 'Product updated successfully.');
-            } else {
-                throw new \Exception('Failed to update product in database');
-            }
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Validation error', ['errors' => $e->errors()]);
-            return redirect()->back()
-                ->withErrors($e->validator)
-                ->withInput();
-        } catch (\Exception $e) {
-            \Log::error('Product update error', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error updating product: ' . $e->getMessage());
-        }
+        return redirect()->route('products.index')
+            ->with('success', 'Product updated successfully');
 }
 
     // 📌 Delete product and remove image

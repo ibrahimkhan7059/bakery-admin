@@ -5,40 +5,60 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
-        <h1 class="h2 text-gray-800 fw-bold">Create New Product</h1>
+        <div></div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary hover-lift">
+            <a href="{{ route('products.index') }}" class="btn btn-primary hover-lift">
                 <i class="bi bi-arrow-left me-1"></i> Back to Products
             </a>
         </div>
     </div>
 
     <div class="card border-0 shadow-sm rounded-lg glass-card">
+        <div class="card-header">
+            <h4 class="card-title">Create Product</h4>
+        </div>
         <div class="card-body">
-            <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" id="productForm">
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
                 @csrf
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="mb-4">
-                            <label class="form-label">Product Name <span class="text-danger">*</span></label>
-                            <input type="text" name="name" id="productName" class="form-control @error('name') is-invalid @enderror" 
-                                value="{{ old('name') }}" required
-                                pattern="[A-Za-z\s\(\)\[\]]+"
-                                title="Product name can only contain letters, spaces, and brackets"
-                                oninput="this.value = this.value.replace(/[^A-Za-z\s\(\)\[\]]/g, '')">
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="name" 
+                                   name="name" 
+                                   value="{{ old('name') }}" 
+                                   required
+                                   minlength="3"
+                                   maxlength="255"
+                                   autocomplete="off">
+                            <div class="form-text">Enter product name (letters, spaces, and special characters allowed)</div>
                         </div>
                     </div>
+                    
                     <div class="col-md-6">
-                        <div class="mb-4">
-                            <label class="form-label">Category <span class="text-danger">*</span></label>
-                            <select name="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label">Category <span class="text-danger">*</span></label>
+                            <select class="form-select @error('category_id') is-invalid @enderror" 
+                                    id="category_id" 
+                                    name="category_id" 
+                                    required>
                                 <option value="">Select Category</option>
                                 @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                    <option value="{{ $category->id }}" 
+                                        {{ old('category_id') == $category->id ? 'selected' : '' }}>
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
@@ -50,118 +70,164 @@
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Description <span class="text-danger">*</span></label>
-                    <textarea name="description" class="form-control @error('description') is-invalid @enderror" 
-                        rows="3" required minlength="10" maxlength="1000">{{ old('description') }}</textarea>
-                    <small class="text-muted">Minimum 10 characters, maximum 1000 characters</small>
-                    @error('description')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="mb-4">
-                            <label class="form-label">Price (₨) <span class="text-danger">*</span></label>
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text">₨</span>
-                                <input type="number" name="price" class="form-control @error('price') is-invalid @enderror" 
-                                    value="{{ old('price') }}" required min="0" max="999999.99" step="0.01">
+                                <span class="input-group-text">Rs</span>
+                                <input type="number"  
+                                       min="1"
+                                       max="999999.99"
+                                       class="form-control @error('price') is-invalid @enderror" 
+                                       id="price" 
+                                       name="price" 
+                                       value="{{ old('price') }}" 
+                                       required>
                             </div>
                             @error('price')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                            <div class="form-text">Enter price between Rs 1 and Rs 999,999.99</div>
                         </div>
                     </div>
+                    
                     <div class="col-md-6">
-                        <div class="mb-4">
-                            <label class="form-label">Stock <span class="text-danger">*</span></label>
-                            <input type="number" name="stock" class="form-control @error('stock') is-invalid @enderror" 
-                                value="{{ old('stock') }}" required min="0" max="1000">
+                        <div class="mb-3">
+                            <label for="stock" class="form-label">Stock <span class="text-danger">*</span></label>
+                            <input type="number" 
+                                   class="form-control @error('stock') is-invalid @enderror" 
+                                   id="stock" 
+                                   name="stock" 
+                                   value="{{ old('stock') }}" 
+                                   required
+                                   min="0"
+                                   max="1000">
                             @error('stock')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                            <div class="form-text">Enter stock quantity (0-1000 units)</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Product Image</label>
-                    <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" 
-                        accept="image/jpeg,image/png,image/jpg,image/gif"
-                        onchange="validateImage(this)">
-                    <small class="text-muted">Maximum file size: 2MB. Supported formats: JPEG, PNG, JPG, GIF. Minimum dimensions: 100x100 pixels</small>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                    <textarea class="form-control @error('description') is-invalid @enderror" 
+                              id="description" 
+                              name="description" 
+                              rows="4" 
+                              required
+                              minlength="10"
+                              maxlength="1000">{{ old('description') }}</textarea>
+                    @error('description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="form-text">Enter a detailed description (10-1000 characters)</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="image" class="form-label">Product Image</label>
+                    <input type="file" 
+                           class="form-control @error('image') is-invalid @enderror" 
+                           id="image" 
+                           name="image" 
+                           accept="image/jpeg,image/png,image/jpg,image/gif">
                     @error('image')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+                    <div class="form-text">Upload an image (max 2MB, JPG, PNG, or GIF)</div>
                 </div>
 
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary hover-lift">
-                        <i class="bi bi-save me-1"></i> Create Product
-                    </button>
-                    <a href="{{ route('products.index') }}" class="btn btn-outline-secondary hover-lift">
-                        <i class="bi bi-x-lg me-1"></i> Cancel
-                    </a>
+                <div class="d-flex justify-content-end gap-2">
+<a href="{{ route('products.index') }}" class="btn btn-secondary back-to-list-btn">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Create Product</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+@push('styles')
+<style>
+    .form-label {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    .text-danger {
+        color: var(--accent-color) !important;
+    }
+    .is-invalid {
+        border-color: var(--accent-color) !important;
+    }
+    .invalid-feedback {
+        color: var(--accent-color);
+        font-size: 0.875rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 0.2rem rgba(255, 111, 97, 0.25);
+    }
+    .form-text {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    .alert-danger {
+        background-color: #fff5f5;
+        border-color: #fed7d7;
+        color: var(--accent-color);
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
-function validateImage(input) {
-    const file = input.files[0];
-    if (file) {
-        // Check file size (2MB = 2 * 1024 * 1024 bytes)
-        if (file.size > 2 * 1024 * 1024) {
-            alert('Image size cannot exceed 2MB');
-            input.value = '';
-            return;
-        }
-
-        // Check file type
-        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-        if (!validTypes.includes(file.type)) {
-            alert('Please select a valid image file (JPEG, PNG, JPG, or GIF)');
-            input.value = '';
-            return;
-        }
-
-        // Check image dimensions
-        const img = new Image();
-        img.onload = function() {
-            if (this.width < 100 || this.height < 100) {
-                alert('Image dimensions must be at least 100x100 pixels');
-                input.value = '';
+// Client-side validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
             }
-        };
-        img.src = URL.createObjectURL(file);
-    }
-}
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
 
-document.getElementById('productForm').addEventListener('submit', function(e) {
-    const name = document.getElementById('productName').value;
-    const description = document.querySelector('textarea[name="description"]').value;
-    
-    if (!/^[A-Za-z\s\(\)\[\]]+$/.test(name)) {
-        e.preventDefault();
-        alert('Product name can only contain letters, spaces, and brackets');
-        return false;
+// Image preview
+document.getElementById('image').addEventListener('change', function(e) {
+    if (this.files && this.files[0]) {
+        if (this.files[0].size > 2 * 1024 * 1024) {
+            alert('Image size should not exceed 2MB');
+            this.value = '';
+            return;
+        }
     }
+});
+
+// Real-time product name validation
+document.getElementById('name').addEventListener('input', function(e) {
+    const input = e.target.value;
+    const errorDiv = this.nextElementSibling; // Get the error div
     
-    if (description.length < 10) {
-        e.preventDefault();
-        alert('Description must be at least 10 characters long');
-        return false;
-    }
-    
-    if (description.length > 1000) {
-        e.preventDefault();
-        alert('Description cannot exceed 1000 characters');
-        return false;
+    // Check if input contains numbers only
+    if(/[0-9]/.test(input)) {
+        this.classList.add('is-invalid');
+        if(!errorDiv.classList.contains('invalid-feedback')) {
+            const newErrorDiv = document.createElement('div');
+            newErrorDiv.className = 'invalid-feedback';
+            newErrorDiv.textContent = 'Product name cannot contain numbers. Letters, spaces, and special characters are allowed.';
+            this.parentNode.insertBefore(newErrorDiv, this.nextSibling);
+        }
+    } else {
+        this.classList.remove('is-invalid');
+        if(errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+            errorDiv.remove();
+        }
     }
 });
 </script>

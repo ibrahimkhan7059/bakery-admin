@@ -15,13 +15,13 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         // Check if admin user already exists
-        $adminUser = User::where('email', 'admin@bakehub.com')->first();
+        $adminUser = User::where('email', 'admin123@gmail.com')->first();
         
         if (!$adminUser) {
             // Create new admin user
             User::create([
                 'name' => 'Admin',
-                'email' => 'admin@bakehub.com',
+                'email' => 'admin123@gmail.com',
                 'password' => Hash::make('admin123'),
                 'email_verified_at' => now(),
                 'role' => 'admin', // Set role to admin

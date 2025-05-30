@@ -22,7 +22,7 @@ class CategoryController extends Controller
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $categories = $query->withCount('products')->oldest()->paginate(10);
+        $categories = $query->withCount('products')->oldest()->paginate(5);
         return view('admin.categories.index', compact('categories'));
     }
 

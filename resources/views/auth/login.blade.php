@@ -6,22 +6,33 @@
     <title>{{ config('app.name', 'Laravel') }} - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ asset('css/custom-theme.css') }}">
     <style>
+        html, body {
+            height: 100%;
+        }
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--main-bg-dark, #F7E4DF);
             min-height: 100vh;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .login-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 2.5rem;
+            background: var(--card-bg, #fff);
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+            padding: 2.5rem 2rem;
             width: 100%;
             max-width: 400px;
-            margin: 1rem;
+            margin: 0;
+        }
+        .bakehub-logo {
+            width: 120px;
+            height: auto;
+            display: block;
+            margin: 0 auto 1.5rem auto;
         }
         .login-header {
             text-align: center;
@@ -50,7 +61,8 @@
             margin-bottom: 1.5rem;
         }
         .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-color, #FF6F61);
+            color: #fff;
             border: none;
             border-radius: 8px;
             padding: 0.75rem;
@@ -58,8 +70,9 @@
             transition: all 0.3s ease;
         }
         .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            background: #ff3c2a;
+            box-shadow: 0 5px 15px rgba(255, 111, 97, 0.2);
+            color: #fff;
         }
         .remember-me {
             display: flex;
@@ -107,13 +120,15 @@
 </head>
 <body>
     <div class="login-container">
+        <div class="text-center">
+            <img src="{{ asset('images/bakehub-logo.png') }}" alt="BakeHub Logo" class="bakehub-logo" style="width:120px;height:auto;margin-bottom:1.5rem;">
+        </div>
         <div class="login-header">
             <h2>Welcome Back</h2>
             <p>Please login to your account</p>
-    </div>
-
+        </div>
         <form method="POST" action="{{ route('login') }}">
-        @csrf
+            @csrf
 
             <div class="form-floating">
                 <div class="input-group">
@@ -129,7 +144,7 @@
                         <strong>{{ $message }}</strong>
                     </span>
                 @enderror
-        </div>
+            </div>
 
             <div class="form-floating">
                 <div class="input-group">
@@ -144,32 +159,31 @@
                         <strong>{{ $message }}</strong>
                     </span>
                 @enderror
-        </div>
+            </div>
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="remember-me">
                     <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
                     <label class="form-check-label" for="remember">
                         Remember Me
-            </label>
+                    </label>
                 </div>
                 <div class="forgot-password">
-            @if (Route::has('password.request'))
+                    @if (Route::has('password.request'))
                         <a href="{{ route('password.request') }}">
                             Forgot Password?
-                </a>
-            @endif
+                        </a>
+                    @endif
                 </div>
-        </div>
+            </div>
 
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary btn-login">
                     <i class="bi bi-box-arrow-in-right me-2"></i>Login
-            </button>
-        </div>
-    </form>
+                </button>
+            </div>
+        </form>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

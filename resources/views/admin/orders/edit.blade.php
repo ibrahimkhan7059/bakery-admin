@@ -5,11 +5,11 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
-        <h1 class="h2 text-gray-800 fw-bold">Edit Order</h1>
+        <div></div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary hover-lift">
-                <i class="bi bi-arrow-left me-1"></i> Back to Orders
-            </a>
+<a href="{{ route('orders.index') }}" class="btn btn-primary hover-lift">
+    <i class="bi bi-arrow-left me-1"></i> Back to Orders
+</a>
         </div>
     </div>
 
@@ -169,6 +169,107 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Real-time validation for customer name
+    const customerNameInput = document.querySelector('input[name="customer_name"]');
+    customerNameInput.addEventListener('input', function() {
+        const value = this.value.trim();
+        const errorDiv = this.nextElementSibling.nextElementSibling;
+        
+        if (value.length < 3) {
+            this.classList.add('is-invalid');
+            if (!errorDiv.classList.contains('invalid-feedback')) {
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.className = 'invalid-feedback';
+                newErrorDiv.textContent = 'Name must be at least 3 characters long';
+                this.parentNode.insertBefore(newErrorDiv, this.nextElementSibling.nextElementSibling);
+            }
+        } else if (!/^[A-Za-z\s]+$/.test(value)) {
+            this.classList.add('is-invalid');
+            if (!errorDiv.classList.contains('invalid-feedback')) {
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.className = 'invalid-feedback';
+                newErrorDiv.textContent = 'Name should only contain letters and spaces';
+                this.parentNode.insertBefore(newErrorDiv, this.nextElementSibling.nextElementSibling);
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            if (errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.remove();
+            }
+        }
+    });
+
+    // Real-time validation for phone number
+    const phoneInput = document.querySelector('input[name="customer_phone"]');
+    phoneInput.addEventListener('input', function() {
+        const value = this.value.trim();
+        let errorMessage = '';
+        
+        // Remove any non-digit characters
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        if (value.length === 0) {
+            errorMessage = 'Phone number is required';
+        } else if (value.length < 11) {
+            errorMessage = 'Phone number must be 11 digits';
+        } else if (value.length > 11) {
+            errorMessage = 'Phone number cannot exceed 11 digits';
+        } else if (!value.startsWith('03')) {
+            errorMessage = 'Phone number must start with 03';
+        } else if (!/^[0-9]+$/.test(value)) {
+            errorMessage = 'Phone number can only contain digits';
+        }
+
+        // Show or hide error message
+        const errorDiv = this.nextElementSibling.nextElementSibling;
+        if (errorMessage) {
+            this.classList.add('is-invalid');
+            if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.className = 'invalid-feedback';
+                newErrorDiv.textContent = errorMessage;
+                this.parentNode.insertBefore(newErrorDiv, this.nextElementSibling.nextElementSibling);
+            } else {
+                errorDiv.textContent = errorMessage;
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.remove();
+            }
+        }
+    });
+
+    // Real-time validation for delivery address
+    const addressInput = document.querySelector('textarea[name="delivery_address"]');
+    addressInput.addEventListener('input', function() {
+        const value = this.value.trim();
+        const errorDiv = this.nextElementSibling.nextElementSibling;
+        
+        if (value.length < 10) {
+            this.classList.add('is-invalid');
+            if (!errorDiv.classList.contains('invalid-feedback')) {
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.className = 'invalid-feedback';
+                newErrorDiv.textContent = 'Address must be at least 10 characters long';
+                this.parentNode.insertBefore(newErrorDiv, this.nextElementSibling.nextElementSibling);
+            }
+        } else if (value.length > 500) {
+            this.classList.add('is-invalid');
+            if (!errorDiv.classList.contains('invalid-feedback')) {
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.className = 'invalid-feedback';
+                newErrorDiv.textContent = 'Address cannot exceed 500 characters';
+                this.parentNode.insertBefore(newErrorDiv, this.nextElementSibling.nextElementSibling);
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            if (errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.remove();
+            }
+        }
+    });
+
     const productsContainer = document.getElementById('products-container');
     const addProductBtn = document.getElementById('add-product');
     const orderForm = document.getElementById('orderForm');

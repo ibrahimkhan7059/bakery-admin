@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    // ✅ Show All Orders with Search & Filtering
+    //  Show All Orders with Search & Filtering
     public function index(Request $request)
     {
         $query = Order::query();
@@ -22,10 +22,6 @@ class OrderController extends Controller
 
         if ($request->filled('payment_status') && $request->payment_status != 'all') {
             $query->where('payment_status', $request->payment_status);
-        }
-
-        if ($request->filled('priority') && $request->priority != 'all') {
-            $query->where('priority', $request->priority);
         }
 
         if ($request->filled('search')) {
@@ -62,14 +58,14 @@ class OrderController extends Controller
         return view('admin.orders.index', compact('orders', 'stats', 'monthlySales'));
     }
 
-    // ✅ Show Create Order Form
+    //  Show Create Order Form
     public function create()
     {
         $products = Product::all();
         return view('admin.orders.create', compact('products'));
     }
 
-    // ✅ Store Order in Database
+    //  Store Order in Database
     public function store(Request $request)
     {
         $validated = $request->validate([

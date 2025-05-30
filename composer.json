@@ -10,6 +10,7 @@
         "doctrine/dbal": "^4.2",
         "intervention/image": "^3.11",
         "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.1",
         "laravel/tinker": "^2.10.1",
         "yajra/laravel-datatables-oracle": "^12.0"
     },

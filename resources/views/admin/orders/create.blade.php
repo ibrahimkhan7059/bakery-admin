@@ -5,46 +5,58 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
-        <h1 class="h2 text-gray-800 fw-bold">Create New Order</h1>
+        <div></div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary hover-lift">
-                <i class="bi bi-arrow-left me-1"></i> Back to Orders
-            </a>
+<a href="{{ route('orders.index') }}" class="btn btn-primary hover-lift">
+    <i class="bi bi-arrow-left me-1"></i> Back to Orders
+</a>
         </div>
     </div>
 
     <div class="card border-0 shadow-sm rounded-lg glass-card">
+        <div class="card-header">
+            <h4 class="card-title">Create Order</h4>
+        </div>
         <div class="card-body">
-            <form action="{{ route('orders.store') }}" method="POST" id="orderForm">
-        @csrf
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('orders.store') }}" method="POST" id="orderForm" class="needs-validation" novalidate>
+                @csrf
 
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="form-label">Customer Name <span class="text-danger">*</span></label>
-                            <input type="text" name="customer_name" id="customerName" class="form-control @error('customer_name') is-invalid @enderror" 
-                                value="{{ old('customer_name') }}" required
-                                pattern="[A-Za-z\s]+"
-                                title="Customer name can only contain letters and spaces"
-                                oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '')">
-                            @error('customer_name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <input type="text" 
+                                   name="customer_name" 
+                                   class="form-control" 
+                                   value="{{ old('customer_name') }}" 
+                                   required
+                                   minlength="3"
+                                   maxlength="255"
+                                   autocomplete="off">
+                            <div class="form-text">Enter customer's full name</div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="form-label">Customer Phone <span class="text-danger">*</span></label>
-                            <input type="text" name="customer_phone" id="customerPhone" class="form-control @error('customer_phone') is-invalid @enderror" 
-                                value="{{ old('customer_phone') }}" required
-                                pattern="(03[0-9]{9}|\+923[0-9]{9})"
-                                title="Please enter a valid Pakistani phone number (e.g., 03001234567 or +923001234567)"
-                                placeholder="03001234567 or +923001234567"
-                                oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
-                            <small class="text-muted">Format: 03XXXXXXXXX or +923XXXXXXXXX</small>
-                            @error('customer_phone')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <input type="text" 
+                                   name="customer_phone" 
+                                   class="form-control" 
+                                   value="{{ old('customer_phone') }}" 
+                                   required
+                                   pattern="[0-9]{11}"
+                                   autocomplete="off">
+                            <div class="form-text">Enter valid phone number (03XXXXXXXXX)</div>
                         </div>
                     </div>
                 </div>
@@ -79,7 +91,7 @@
                     @error('notes')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-        </div>
+                </div>
 
                 <div class="mb-4">
                     <label class="form-label">Products <span class="text-danger">*</span></label>
@@ -115,7 +127,7 @@
                     <button type="button" class="btn btn-outline-primary mt-2 hover-lift" id="add-product">
                         <i class="bi bi-plus-lg me-1"></i> Add Product
                     </button>
-        </div>
+                </div>
 
                 <div class="row">
                     <div class="col-md-6">
@@ -130,20 +142,49 @@
                             <input type="text" class="form-control" id="total" readonly>
                         </div>
                     </div>
-        </div>
+                </div>
 
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary hover-lift">
-                        <i class="bi bi-save me-1"></i> Create Order
-                    </button>
-                    <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary hover-lift">
-                        <i class="bi bi-x-lg me-1"></i> Cancel
-                    </a>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ route('orders.index') }}" class="btn btn-primary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Create Order</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+@push('styles')
+<style>
+    .form-label {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    .text-danger {
+        color: var(--accent-color) !important;
+    }
+    .is-invalid {
+        border-color: var(--accent-color) !important;
+    }
+    .invalid-feedback {
+        color: var(--accent-color);
+        font-size: 0.875rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 0.2rem rgba(255, 111, 97, 0.25);
+    }
+    .form-text {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    .alert-danger {
+        background-color: #fff5f5;
+        border-color: #fed7d7;
+        color: var(--accent-color);
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -233,29 +274,102 @@ document.addEventListener('DOMContentLoaded', function() {
         updateProductRow(newRow);
     });
 
-    // Form validation
-    orderForm.addEventListener('submit', function(e) {
-        const customerName = document.getElementById('customerName').value;
-        const customerPhone = document.getElementById('customerPhone').value;
+    // Real-time validation for customer name
+    const customerNameInput = document.querySelector('input[name="customer_name"]');
+    customerNameInput.addEventListener('input', function() {
+        const value = this.value.trim();
+        let errorMessage = '';
         
-        if (!/^[A-Za-z\s]+$/.test(customerName)) {
-            e.preventDefault();
-            alert('Customer name can only contain letters and spaces');
-            return false;
-        }
-        
-        if (!/^(03[0-9]{9}|\+923[0-9]{9})$/.test(customerPhone)) {
-            e.preventDefault();
-            alert('Please enter a valid Pakistani phone number (e.g., 03001234567 or +923001234567)');
-            return false;
+        if (value.length === 0) {
+            errorMessage = 'Customer name is required';
+        } else if (value.length < 3) {
+            errorMessage = 'Name must be at least 3 characters long';
+        } else if (/[0-9]/.test(value)) {
+            errorMessage = 'Name cannot contain numbers';
         }
 
-        // Check if at least one product is selected
-        const hasProducts = Array.from(document.querySelectorAll('.product-select')).some(select => select.value !== '');
-        if (!hasProducts) {
+        // Show or hide error message
+        const errorDiv = this.nextElementSibling.nextElementSibling;
+        if (errorMessage) {
+            this.classList.add('is-invalid');
+            if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.className = 'invalid-feedback';
+                newErrorDiv.textContent = errorMessage;
+                this.parentNode.insertBefore(newErrorDiv, this.nextElementSibling.nextElementSibling);
+            } else {
+                errorDiv.textContent = errorMessage;
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.remove();
+            }
+        }
+    });
+
+    // Real-time validation for phone number (Pakistan format)
+    const phoneInput = document.querySelector('input[name="customer_phone"]');
+    phoneInput.addEventListener('input', function() {
+        const value = this.value.trim();
+        let errorMessage = '';
+        
+        // Remove any non-digit characters
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        if (value.length === 0) {
+            errorMessage = 'Phone number is required';
+        } else if (value.length < 11) {
+            errorMessage = 'Phone number must be 11 digits';
+        } else if (value.length > 11) {
+            errorMessage = 'Phone number cannot exceed 11 digits';
+        } else if (!value.startsWith('03')) {
+            errorMessage = 'Phone number must start with 03';
+        } else if (!/^[0-9]+$/.test(value)) {
+            errorMessage = 'Phone number can only contain digits';
+        }
+
+        // Show or hide error message
+        const errorDiv = this.nextElementSibling.nextElementSibling;
+        if (errorMessage) {
+            this.classList.add('is-invalid');
+            if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.className = 'invalid-feedback';
+                newErrorDiv.textContent = errorMessage;
+                this.parentNode.insertBefore(newErrorDiv, this.nextElementSibling.nextElementSibling);
+            } else {
+                errorDiv.textContent = errorMessage;
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                errorDiv.remove();
+            }
+        }
+    });
+
+    // Form submission validation
+    orderForm.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validate customer name
+        const customerName = customerNameInput.value.trim();
+        if (customerName.length < 3 || /[0-9]/.test(customerName)) {
+            customerNameInput.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        // Validate phone number
+        const phoneNumber = phoneInput.value.trim();
+        if (!/^03[0-9]{9}$/.test(phoneNumber)) {
+            phoneInput.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        if (!isValid) {
             e.preventDefault();
-            alert('Please add at least one product to the order');
-            return false;
+            alert('Please fill in all required fields correctly');
         }
     });
 

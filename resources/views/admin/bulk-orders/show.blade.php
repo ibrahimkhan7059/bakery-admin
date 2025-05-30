@@ -8,9 +8,9 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div></div>
         <div>
-            <a href="{{ route('bulk-orders.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to List
-            </a>
+<a href="{{ route('bulk-orders.index') }}" class="btn btn-secondary back-to-list-btn">
+    <i class="fas fa-arrow-left"></i> Back to List
+</a>
             <a href="{{ route('bulk-orders.invoice', $bulkOrder) }}" class="btn btn-info" target="_blank">
                 <i class="fas fa-file-invoice"></i> View Invoice
             </a>

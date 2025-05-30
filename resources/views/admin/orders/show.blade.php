@@ -13,9 +13,9 @@
             <a href="{{ route('orders.print-receipt', $order) }}" class="btn btn-success me-2 hover-lift" target="_blank">
                 <i class="bi bi-printer me-1"></i> Print Receipt
             </a>
-            <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary hover-lift">
-                <i class="bi bi-arrow-left me-1"></i> Back to Orders
-            </a>
+<a href="{{ route('orders.index') }}" class="btn btn-primary hover-lift">
+    <i class="bi bi-arrow-left me-1"></i> Back to Orders
+</a>
         </div>
     </div>
 

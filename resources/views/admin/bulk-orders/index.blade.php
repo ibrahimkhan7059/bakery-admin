@@ -160,9 +160,9 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search"></i> Search
                     </button>
-                    <a href="{{ route('bulk-orders.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-sync"></i> Reset
-                    </a>
+<a href="{{ route('bulk-orders.index') }}" class="btn btn-secondary reset-btn">
+    <i class="fas fa-sync"></i> Reset
+</a>
                 </div>
             </form>
         </div>

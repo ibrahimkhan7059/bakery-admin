@@ -5,9 +5,9 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
-        <h1 class="h2 text-gray-800 fw-bold">Create Customer</h1>
+        <div></div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ route('customers.index') }}" class="btn btn-outline-secondary hover-lift">
+            <a href="{{ route('customers.index') }}" class="btn btn-primary hover-lift">
                 <i class="bi bi-arrow-left me-1"></i> Back to Customers
             </a>
         </div>
