@@ -12,27 +12,71 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::with('category')
-            ->where('is_active', true)
-            ->get();
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'description' => $product->description,
+                    'price' => $product->price,
+                    'stock' => $product->stock,
+                    'image' => $product->image ? asset('storage/' . $product->image) : null,
+                    'category_id' => $product->category_id,
+                    'category' => $product->category ? [
+                        'id' => $product->category->id,
+                        'name' => $product->category->name,
+                    ] : null,
+                    'created_at' => $product->created_at,
+                    'updated_at' => $product->updated_at,
+                ];
+            });
 
         return response()->json($products);
     }
 
     public function show(Product $product)
     {
-        if (!$product->is_active) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
+        $productData = [
+            'id' => $product->id,
+            'name' => $product->name,
+            'description' => $product->description,
+            'price' => $product->price,
+            'stock' => $product->stock,
+            'image' => $product->image ? asset('storage/' . $product->image) : null,
+            'category_id' => $product->category_id,
+            'category' => $product->category ? [
+                'id' => $product->category->id,
+                'name' => $product->category->name,
+            ] : null,
+            'created_at' => $product->created_at,
+            'updated_at' => $product->updated_at,
+        ];
 
-        return response()->json($product->load('category'));
+        return response()->json($productData);
     }
 
     public function byCategory(Category $category)
     {
         $products = Product::with('category')
             ->where('category_id', $category->id)
-            ->where('is_active', true)
-            ->get();
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'description' => $product->description,
+                    'price' => $product->price,
+                    'stock' => $product->stock,
+                    'image' => $product->image ? asset('storage/' . $product->image) : null,
+                    'category_id' => $product->category_id,
+                    'category' => $product->category ? [
+                        'id' => $product->category->id,
+                        'name' => $product->category->name,
+                    ] : null,
+                    'created_at' => $product->created_at,
+                    'updated_at' => $product->updated_at,
+                ];
+            });
 
         return response()->json($products);
     }

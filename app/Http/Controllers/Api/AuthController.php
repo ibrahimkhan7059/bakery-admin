@@ -16,9 +16,6 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        // Debug: Log incoming request data
-        \Log::info('Registration attempt with data:', $request->all());
-        
         $validator = Validator::make($request->all(), [
             'name'    => 'required|string|max:255',
             'email'   => 'required|string|email|max:255|unique:users',
@@ -28,9 +25,6 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            // Debug: Log validation errors
-            \Log::error('Registration validation failed:', $validator->errors()->toArray());
-            
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -47,7 +41,9 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->notify(new WelcomeCustomerNotification($user->name));
+        // Send welcome email in background (non-blocking)
+        // Temporarily disabled for faster registration during development
+        // $user->notify(new WelcomeCustomerNotification($user->name));
 
         return response()->json([
             'success' => true,

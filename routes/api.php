@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
@@ -13,66 +14,47 @@ use App\Http\Controllers\Api\BulkOrderController;
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-| All routes here are stateless and use Sanctum for token authentication.
 */
 
-/**
- * Public Routes
- */
+// ✅ Public Authentication Routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/send-otp', [AuthController::class, 'sendOtp']);
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/verify-login', [AuthController::class, 'verifyLogin']);
 
-// Flutter specific routes
-Route::post('/flutter/register', [AuthController::class, 'register']);
-Route::post('/flutter/login', [AuthController::class, 'login']);
-
-/**
- * Protected Routes - Require Sanctum Token
- */
+// ✅ Protected routes (Sanctum middleware)
 Route::middleware('auth:sanctum')->group(function () {
-
-    // Logout
+    // Authentication
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Profile
-    Route::prefix('/v1/profile')->group(function () {
-        Route::get('/', [ProfileController::class, 'show']);
-        Route::put('/', [ProfileController::class, 'update']);
-    });
+    Route::get('/v1/profile', [ProfileController::class, 'show']);
+    Route::put('/v1/profile', [ProfileController::class, 'update']);
 
     // Products
-    Route::prefix('/v1/products')->group(function () {
-        Route::get('/', [ProductController::class, 'index']);
-        Route::get('/{product}', [ProductController::class, 'show']);
-        Route::get('/category/{category}', [ProductController::class, 'byCategory']);
-    });
+    Route::get('/v1/products', [ProductController::class, 'index']);
+    Route::get('/v1/products/{product}', [ProductController::class, 'show']);
+    Route::get('/v1/products/category/{category}', [ProductController::class, 'byCategory']);
 
     // Categories
-    Route::prefix('/v1/categories')->group(function () {
-        Route::get('/', [CategoryController::class, 'index']);
-        Route::get('/{category}', [CategoryController::class, 'show']);
-    });
+    Route::get('/v1/categories', [CategoryController::class, 'index']);
+    Route::get('/v1/categories/{category}', [CategoryController::class, 'show']);
 
     // Cart
-    Route::prefix('/v1/cart')->group(function () {
-        Route::get('/', [CartController::class, 'show']);
-        Route::post('/', [CartController::class, 'add']);
-        Route::put('/{item}', [CartController::class, 'update']);
-        Route::delete('/{item}', [CartController::class, 'remove']);
-    });
+    Route::get('/v1/cart', [CartController::class, 'show']);
+    Route::post('/v1/cart', [CartController::class, 'add']);
+    Route::put('/v1/cart/{item}', [CartController::class, 'update']);
+    Route::delete('/v1/cart/{item}', [CartController::class, 'remove']);
 
     // Orders
-    Route::prefix('/v1/orders')->group(function () {
-        Route::post('/', [OrderController::class, 'store']);
-        Route::get('/', [OrderController::class, 'index']);
-        Route::get('/{order}', [OrderController::class, 'show']);
-    });
+    Route::post('/v1/orders', [OrderController::class, 'store']);
+    Route::get('/v1/orders', [OrderController::class, 'index']);
+    Route::get('/v1/orders/{order}', [OrderController::class, 'show']);
 
     // Bulk Orders
-    Route::prefix('/v1/bulk-orders')->group(function () {
-        Route::post('/', [BulkOrderController::class, 'store']);
-        Route::get('/', [BulkOrderController::class, 'index']);
-        Route::get('/{bulkOrder}', [BulkOrderController::class, 'show']);
-        Route::put('/{bulkOrder}/status', [BulkOrderController::class, 'updateStatus']);
-    });
+    Route::post('/v1/bulk-orders', [BulkOrderController::class, 'store']);
+    Route::get('/v1/bulk-orders', [BulkOrderController::class, 'index']);
+    Route::get('/v1/bulk-orders/{bulkOrder}', [BulkOrderController::class, 'show']);
+    Route::put('/v1/bulk-orders/{bulkOrder}/status', [BulkOrderController::class, 'updateStatus']);
 });

@@ -84,6 +84,7 @@
                     </tbody>
                 </table>
             </div>
+           
 
             @if($categories->hasPages())
                 <div class="d-flex justify-content-center mt-4">

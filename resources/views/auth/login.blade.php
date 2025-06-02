@@ -25,7 +25,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
             padding: 2.5rem 2rem;
             width: 100%;
-            max-width: 400px;
+            max-width: 800px;
             margin: 0;
         }
         .bakehub-logo {
@@ -52,6 +52,7 @@
             padding: 0.75rem 1rem;
             border: 1px solid #ddd;
             transition: all 0.3s ease;
+        
         }
         .form-control:focus {
             border-color: #667eea;
@@ -59,6 +60,7 @@
         }
         .form-floating {
             margin-bottom: 1.5rem;
+            
         }
         .btn-login {
             background: var(--primary-color, #FF6F61);

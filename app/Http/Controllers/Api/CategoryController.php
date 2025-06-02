@@ -10,23 +10,32 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::where('is_active', true)
-            ->withCount(['products' => function($query) {
-                $query->where('is_active', true);
-            }])
-            ->get();
+        $categories = Category::withCount('products')
+            ->get()
+            ->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'image' => $category->image ? asset('storage/' . $category->image) : null,
+                    'products_count' => $category->products_count,
+                    'created_at' => $category->created_at,
+                    'updated_at' => $category->updated_at,
+                ];
+            });
 
         return response()->json($categories);
     }
 
     public function show(Category $category)
     {
-        if (!$category->is_active) {
-            return response()->json(['message' => 'Category not found'], 404);
-        }
+        $categoryData = [
+            'id' => $category->id,
+            'name' => $category->name,
+            'image' => $category->image ? asset('storage/' . $category->image) : null,
+            'created_at' => $category->created_at,
+            'updated_at' => $category->updated_at,
+        ];
 
-        return response()->json($category->load(['products' => function($query) {
-            $query->where('is_active', true);
-        }]));
+        return response()->json($categoryData);
     }
 } 

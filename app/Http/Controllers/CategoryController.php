@@ -13,7 +13,7 @@ use Illuminate\Routing\Controller;
 
 class CategoryController extends Controller
 {
-    // 📌 Show all categories
+    // Show all categories
     public function index(Request $request)
     {
         $query = Category::query();
@@ -27,13 +27,13 @@ class CategoryController extends Controller
     }
 
 
-    // 📌 Show create form
+    //  Show create form
     public function create()
     {
         return view('admin.categories.create');
     }
 
-    // 📌 Store new category
+    //  Store new category
     public function store(Request $request)
     {
         $request->validate([
@@ -74,13 +74,13 @@ class CategoryController extends Controller
             ->with('success', 'Category created successfully.');
     }
 
-    // 📌 Show edit form
+    //  Show edit form
     public function edit(Category $category)
     {
         return view('admin.categories.edit', compact('category'));
     }
 
-    // 📌 Update category
+    //  Update category
     public function update(Request $request, Category $category)
     {
         $request->validate([
@@ -125,7 +125,7 @@ class CategoryController extends Controller
             ->with('success', 'Category updated successfully.');
     }
 
-    // 📌 Delete category
+    //  Delete category
     public function destroy(Category $category)
     {
         // Delete image if exists

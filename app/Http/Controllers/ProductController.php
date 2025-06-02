@@ -13,7 +13,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 
 class ProductController extends Controller
 {
-    // 📌 Show all products with search, pagination, and sorting
+    // Show all products with search, pagination, and sorting
     public function index(Request $request)
     {
         $query = Product::query();
