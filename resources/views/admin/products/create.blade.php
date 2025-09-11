@@ -44,7 +44,7 @@
                                    minlength="3"
                                    maxlength="255"
                                    autocomplete="off">
-                            <div class="form-text">Enter product name (letters, spaces, and special characters allowed)</div>
+                            <div class="form-text">Enter product name (letters, numbers, spaces, and special characters allowed)</div>
                         </div>
                     </div>
                     
@@ -112,18 +112,30 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                    <label for="description" class="form-label">Description</label>
                     <textarea class="form-control @error('description') is-invalid @enderror" 
                               id="description" 
                               name="description" 
                               rows="4" 
-                              required
                               minlength="10"
                               maxlength="1000">{{ old('description') }}</textarea>
                     @error('description')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                    <div class="form-text">Enter a detailed description (10-1000 characters)</div>
+                    <div class="form-text">Enter a detailed description (optional, 10-1000 characters if provided)</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="allergens" class="form-label">Allergens</label>
+                    <textarea class="form-control @error('allergens') is-invalid @enderror" 
+                              id="allergens" 
+                              name="allergens" 
+                              rows="2"
+                              maxlength="500">{{ old('allergens') }}</textarea>
+                    @error('allergens')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="form-text">List any allergens (e.g. nuts, dairy, gluten). Separate by commas.</div>
                 </div>
 
                 <div class="mb-3">
@@ -136,7 +148,29 @@
                     @error('image')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
-                    <div class="form-text">Upload an image (max 2MB, JPG, PNG, or GIF)</div>
+                    <div class="form-text">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Upload an image (max 10MB, JPG, PNG, or GIF). 
+                        
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="alternative_product_id" class="form-label">Alternative Product</label>
+                    <select class="form-select @error('alternative_product_id') is-invalid @enderror" id="alternative_product_id" name="alternative_product_id">
+                        <option value="">None</option>
+                        @foreach($allProducts as $altProduct)
+                            @if(!isset($product) || $altProduct->id !== $product->id)
+                                <option value="{{ $altProduct->id }}" {{ old('alternative_product_id', isset($product) ? $product->alternative_product_id : null) == $altProduct->id ? 'selected' : '' }}>
+                                    {{ $altProduct->name }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                    @error('alternative_product_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="form-text">Select an alternative product to suggest if this one is unavailable.</div>
                 </div>
 
                 <div class="d-flex justify-content-end gap-2">
@@ -214,19 +248,19 @@ document.getElementById('name').addEventListener('input', function(e) {
     const input = e.target.value;
     const errorDiv = this.nextElementSibling; // Get the error div
     
-    // Check if input contains numbers only
-    if(/[0-9]/.test(input)) {
+    // Check if input contains only valid characters
+    if(/^[A-Za-z0-9\s\(\)\[\]\.\-]*$/.test(input)) {
+        this.classList.remove('is-invalid');
+        if(errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+            errorDiv.remove();
+        }
+    } else {
         this.classList.add('is-invalid');
         if(!errorDiv.classList.contains('invalid-feedback')) {
             const newErrorDiv = document.createElement('div');
             newErrorDiv.className = 'invalid-feedback';
-            newErrorDiv.textContent = 'Product name cannot contain numbers. Letters, spaces, and special characters are allowed.';
+            newErrorDiv.textContent = 'Product name can contain letters, numbers, spaces, brackets, dots, and hyphens.';
             this.parentNode.insertBefore(newErrorDiv, this.nextSibling);
-        }
-    } else {
-        this.classList.remove('is-invalid');
-        if(errorDiv && errorDiv.classList.contains('invalid-feedback')) {
-            errorDiv.remove();
         }
     }
 });

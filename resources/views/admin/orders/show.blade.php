@@ -85,15 +85,15 @@
                     </div>
                     <div class="mb-3">
                         <label class="text-muted small">Subtotal</label>
-                        <p class="mb-0">₨{{ number_format($receipt['subtotal'], 2) }}</p>
+                        <p class="mb-0">PKR {{ number_format($receipt['subtotal'], 2) }}</p>
                     </div>
                     <div class="mb-3">
                         <label class="text-muted small">Discount</label>
-                        <p class="mb-0">₨{{ number_format($receipt['discount'], 2) }}</p>
+                        <p class="mb-0">PKR {{ number_format($receipt['discount'], 2) }}</p>
                     </div>
                     <div class="mb-3">
                         <label class="text-muted small">Total Amount</label>
-                        <p class="mb-0 fw-bold">₨{{ number_format($order->total_amount, 2) }}</p>
+                        <p class="mb-0 fw-bold">PKR {{ number_format($order->total_amount, 2) }}</p>
                     </div>
                     <div class="mb-3">
                         <label class="text-muted small">Estimated Delivery</label>
@@ -125,9 +125,9 @@
                         <tr>
                             <td>{{ $item['name'] }}</td>
                             <td>{{ $item['quantity'] }}</td>
-                            <td>₨{{ number_format($item['price'], 2) }}</td>
-                            <td>₨{{ number_format($item['discount'], 2) }}</td>
-                            <td>₨{{ number_format($item['total'], 2) }}</td>
+                            <td>PKR {{ number_format($item['price'], 2) }}</td>
+                            <td>PKR {{ number_format($item['discount'], 2) }}</td>
+                            <td>PKR {{ number_format($item['total'], 2) }}</td>
                             <td>{{ $item['notes'] ?? '-' }}</td>
                         </tr>
                         @endforeach

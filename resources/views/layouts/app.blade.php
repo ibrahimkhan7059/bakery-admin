@@ -91,6 +91,15 @@
                     </li>
                     <li class="nav-item">
                         <a
+                            class="nav-link {{ request()->routeIs('custom-cake-orders.*') ? 'active' : '' }}"
+                            href="{{ route('custom-cake-orders.index') }}"
+                        >
+                            <i class="bi bi-palette-fill"></i> Custom Cake Orders
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a
                             class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}"
                             href="{{ route('customers.index') }}"
                         >
@@ -201,4 +210,3 @@
         </script>
     </body>
 </html>
-</create_file>

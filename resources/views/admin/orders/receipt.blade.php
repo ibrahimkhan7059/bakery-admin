@@ -199,8 +199,8 @@
                 <tr>
                     <td>{{ $item['name'] }}</td>
                     <td>{{ $item['quantity'] }}</td>
-                    <td>₨{{ number_format($item['price'], 2) }}</td>
-                    <td>₨{{ number_format($item['total'], 2) }}</td>
+                    <td>PKR {{ number_format($item['price'], 2) }}</td>
+                    <td>PKR {{ number_format($item['total'], 2) }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -209,15 +209,15 @@
         <div class="total">
             <p>
                 <span>Subtotal:</span>
-                <span>₨{{ number_format($receipt['subtotal'], 2) }}</span>
+                <span>PKR {{ number_format($receipt['subtotal'], 2) }}</span>
             </p>
             <p>
                 <span>Discount:</span>
-                <span>₨{{ number_format($receipt['discount'], 2) }}</span>
+                <span>PKR {{ number_format($receipt['discount'], 2) }}</span>
             </p>
             <p class="grand-total">
                 <span>Total Amount:</span>
-                <span>₨{{ number_format($receipt['subtotal'] - $receipt['discount'], 2) }}</span>
+                <span>PKR {{ number_format($receipt['subtotal'] - $receipt['discount'], 2) }}</span>
             </p>
         </div>
 

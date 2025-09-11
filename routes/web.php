@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomCakeOrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 use App\Models\User;
 use App\Http\Controllers\BulkOrderController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\Admin\CakeConfigController;
 
 Route::get('/', function () {
     return redirect('/login'); // Redirect to login page
@@ -57,6 +59,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::delete('/products/{product}/delete-image', [ProductController::class, 'deleteImage'])->name('products.deleteImage');
+    Route::get('/products/export/cake-images', [ProductController::class, 'exportCakeImagesCsv'])->name('products.export.cake-images');
 
     // Orders Routes
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
@@ -79,6 +82,17 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::put('/bulk-orders/{bulkOrder}', [BulkOrderController::class, 'update'])->name('bulk-orders.update');
     Route::delete('/bulk-orders/{bulkOrder}', [BulkOrderController::class, 'destroy'])->name('bulk-orders.destroy');
     Route::match(['post'], '/bulk-orders/{bulkOrder}/status', [BulkOrderController::class, 'updateStatus'])->name('bulk-orders.update-status');
+
+    // Custom Cake Orders Routes
+    Route::get('/custom-cake-orders', [CustomCakeOrderController::class, 'index'])->name('custom-cake-orders.index');
+    Route::get('/custom-cake-orders/create', [CustomCakeOrderController::class, 'create'])->name('custom-cake-orders.create');
+    Route::post('/custom-cake-orders', [CustomCakeOrderController::class, 'store'])->name('custom-cake-orders.store');
+    Route::get('/custom-cake-orders/{customCakeOrder}', [CustomCakeOrderController::class, 'show'])->name('custom-cake-orders.show');
+    Route::get('/custom-cake-orders/{customCakeOrder}/edit', [CustomCakeOrderController::class, 'edit'])->name('custom-cake-orders.edit');
+    Route::put('/custom-cake-orders/{customCakeOrder}', [CustomCakeOrderController::class, 'update'])->name('custom-cake-orders.update');
+    Route::delete('/custom-cake-orders/{customCakeOrder}', [CustomCakeOrderController::class, 'destroy'])->name('custom-cake-orders.destroy');
+    Route::post('/custom-cake-orders/{customCakeOrder}/status', [CustomCakeOrderController::class, 'updateStatus'])->name('custom-cake-orders.update-status');
+    Route::post('/custom-cake-orders/bulk-update', [CustomCakeOrderController::class, 'bulkUpdate'])->name('custom-cake-orders.bulk-update');
     Route::get('/bulk-orders/{bulkOrder}/invoice', [BulkOrderController::class, 'invoice'])->name('bulk-orders.invoice');
 
     // Customer Routes
@@ -95,6 +109,16 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
     Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('settings.notifications');
     Route::put('/settings/security', [SettingsController::class, 'updateSecurity'])->name('settings.security');
+
+    // Cake Config Routes
+    Route::get('/cake-config', [CakeConfigController::class, 'index'])->name('admin.cake-config.index');
+    Route::post('/cake-config/size', [CakeConfigController::class, 'storeSize'])->name('admin.cake-config.size.store');
+    Route::put('/cake-config/size/{cakeSize}', [CakeConfigController::class, 'updateSize'])->name('admin.cake-config.size.update');
+    Route::delete('/cake-config/size/{cakeSize}', [CakeConfigController::class, 'deleteSize'])->name('admin.cake-config.size.delete');
+
+    Route::post('/cake-config/option', [CakeConfigController::class, 'storeOption'])->name('admin.cake-config.option.store');
+    Route::put('/cake-config/option/{cakeOption}', [CakeConfigController::class, 'updateOption'])->name('admin.cake-config.option.update');
+    Route::delete('/cake-config/option/{cakeOption}', [CakeConfigController::class, 'deleteOption'])->name('admin.cake-config.option.delete');
 });
 
 // ✅ Laravel Breeze Auth Routes

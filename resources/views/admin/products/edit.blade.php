@@ -128,6 +128,19 @@
                 </div>
 
                 <div class="mb-3">
+                    <label for="allergens" class="form-label">Allergens</label>
+                    <textarea class="form-control @error('allergens') is-invalid @enderror" 
+                              id="allergens" 
+                              name="allergens" 
+                              rows="2"
+                              maxlength="500">{{ old('allergens', $product->allergens) }}</textarea>
+                    @error('allergens')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="form-text">List any allergens (e.g. nuts, dairy, gluten). Separate by commas.</div>
+                </div>
+
+                <div class="mb-3">
                     <label for="image" class="form-label">Product Image</label>
                     <input type="file" 
                            class="form-control @error('image') is-invalid @enderror" 
@@ -148,7 +161,23 @@
                     @endif
                 </div>
 
-                
+                <div class="mb-3">
+                    <label for="alternative_product_id" class="form-label">Alternative Product</label>
+                    <select class="form-select @error('alternative_product_id') is-invalid @enderror" id="alternative_product_id" name="alternative_product_id">
+                        <option value="">None</option>
+                        @foreach($allProducts as $altProduct)
+                            @if($altProduct->id !== $product->id)
+                                <option value="{{ $altProduct->id }}" {{ old('alternative_product_id', $product->alternative_product_id) == $altProduct->id ? 'selected' : '' }}>
+                                    {{ $altProduct->name }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                    @error('alternative_product_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <div class="form-text">Select an alternative product to suggest if this one is unavailable.</div>
+                </div>
 
                 <div class="d-flex justify-content-end gap-2">
                     <a href="{{ route('products.index') }}" class="btn btn-primary">Cancel</a>

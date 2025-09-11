@@ -135,8 +135,8 @@
             <tr>
                 <td>{{ $item->product->name }}</td>
                 <td>{{ $item->quantity }}</td>
-                <td>₨{{ number_format($item->price, 2) }}</td>
-                <td>₨{{ number_format($item->price * $item->quantity * (1 - $item->discount), 2) }}</td>
+                <td>PKR {{ number_format($item->price, 2) }}</td>
+                <td>PKR {{ number_format($item->price * $item->quantity * (1 - $item->discount), 2) }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -145,28 +145,24 @@
     <div class="total-section">
         <table>
             <tr>
-                <td>Subtotal:</td>
-                <td>₨{{ number_format($bulkOrder->calculateTotal(), 2) }}</td>
+                <td>Total Amount:</td>
+                <td>PKR {{ number_format($bulkOrder->items->sum(function($item) { return $item->price * $item->quantity; }), 2) }}</td>
             </tr>
             <tr>
-                <td>Delivery:</td>
-                <td>₨{{ number_format($bulkOrder->delivery_fee, 2) }}</td>
-            </tr>
-            <tr>
-                <td>Discount:</td>
-                <td>₨{{ number_format($bulkOrder->discount, 2) }}</td>
+                <td>Discount Amount:</td>
+                <td>PKR {{ number_format(($bulkOrder->items->sum(function($item) { return $item->price * $item->quantity; }) - $bulkOrder->total_amount), 2) }}</td>
             </tr>
             <tr class="grand-total">
-                <td>Total Amount:</td>
-                <td>₨{{ number_format($bulkOrder->total_amount, 2) }}</td>
+                <td>Final Amount:</td>
+                <td>PKR {{ number_format($bulkOrder->total_amount, 2) }}</td>
             </tr>
             <tr>
                 <td>Advance Payment:</td>
-                <td>₨{{ number_format($bulkOrder->advance_payment, 2) }}</td>
+                <td>PKR {{ number_format($bulkOrder->advance_payment, 2) }}</td>
             </tr>
             <tr class="grand-total">
                 <td>Remaining Amount:</td>
-                <td>₨{{ number_format($bulkOrder->remaining_payment, 2) }}</td>
+                <td>PKR {{ number_format($bulkOrder->total_amount - $bulkOrder->advance_payment, 2) }}</td>
             </tr>
         </table>
     </div>

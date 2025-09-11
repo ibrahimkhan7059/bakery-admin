@@ -103,7 +103,7 @@
                                         <option value="">Select Product</option>
                                         @foreach($products as $product)
                                             <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-stock="{{ $product->stock }}">
-                                                {{ $product->name }} - ₨{{ number_format($product->price, 2) }} (Stock: {{ $product->stock }})
+                                                {{ $product->name }} - PKR {{ number_format($product->price, 2) }} (Stock: {{ $product->stock }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const price = parseFloat(productSelect.options[productSelect.selectedIndex]?.dataset.price || 0);
             const quantity = parseInt(quantityInput.value) || 0;
             const total = price * quantity;
-            productTotal.value = `₨${total.toFixed(2)}`;
+            productTotal.value = `PKR ${total.toFixed(2)}`;
             updateOrderTotals();
         }
 
@@ -246,11 +246,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateOrderTotals() {
         let subtotal = 0;
         document.querySelectorAll('.product-total').forEach(input => {
-            subtotal += parseFloat(input.value.replace('₨', '')) || 0;
+            subtotal += parseFloat(input.value.replace('PKR', '')) || 0;
         });
 
-        document.getElementById('subtotal').value = `₨${subtotal.toFixed(2)}`;
-        document.getElementById('total').value = `₨${subtotal.toFixed(2)}`;
+        document.getElementById('subtotal').value = `PKR ${subtotal.toFixed(2)}`;
+        document.getElementById('total').value = `PKR ${subtotal.toFixed(2)}`;
     }
 
     addProductBtn.addEventListener('click', function() {
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             input.value = '';
             if (input.classList.contains('product-total')) {
-                input.value = '₨0.00';
+                input.value = 'PKR 0.00';
             } else if (input.classList.contains('quantity-input')) {
                 input.value = '1';
             }

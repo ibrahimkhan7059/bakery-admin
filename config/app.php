@@ -9,7 +9,7 @@ return [
     |
     | This value is the name of your application, which will be used when the
     | framework needs to place the application's name in a notification or
-    | other UI elements where an application name needs to be displayed.
+    | any other location as required by the application or its packages.
     |
     */
 
@@ -40,6 +40,18 @@ return [
     */
 
     'debug' => (bool) env('APP_DEBUG', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI API Configuration
+    |--------------------------------------------------------------------------
+    |
+    | URL for the Python AI service that handles cake image predictions.
+    | This should be the network IP address where your Python AI server is running.
+    |
+    */
+
+    'ai_api_url' => env('AI_API_URL', 'http://192.168.100.81:5000'),
 
     /*
     |--------------------------------------------------------------------------

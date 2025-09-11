@@ -200,7 +200,7 @@
                                         <small class="text-muted">{{ $order->delivery_time->format('h:i A') }}</small>
                                     @endif
                                 </td>
-                                <td>₨{{ number_format($order->total_amount, 2) }}</td>
+                                <td>PKR {{ number_format($order->total_amount, 2) }}</td>
                                 <td>
                                     <span class="badge bg-{{ $order->status === 'completed' ? 'success' : ($order->status === 'cancelled' ? 'danger' : ($order->status === 'processing' ? 'info' : ($order->status === 'confirmed' ? 'secondary' : 'warning'))) }}">
                                         {{ $order->formatted_status }}

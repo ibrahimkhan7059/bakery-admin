@@ -53,6 +53,7 @@ class CategoryController extends Controller
             $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             
+            try {
             // Create image manager with GD driver
             $manager = new ImageManager(new Driver());
             
@@ -64,8 +65,17 @@ class CategoryController extends Controller
             });
             
             // Save compressed image
-            Storage::disk('public')->put('categories/' . $filename, $img->toJpeg(75));
-            $category->image = 'categories/' . $filename;
+                $filePath = 'categories/' . $filename;
+                $saved = Storage::disk('public')->put($filePath, $img->toJpeg(75));
+                
+                if ($saved) {
+                    $category->image = $filePath;
+                } else {
+                    throw new \Exception('Failed to save image file');
+                }
+            } catch (\Exception $e) {
+                return back()->withErrors(['image' => 'Failed to process image: ' . $e->getMessage()])->withInput();
+            }
         }
 
         $category->save();
@@ -104,6 +114,7 @@ class CategoryController extends Controller
             $image = $request->file('image');
             $filename = time() . '.' . $image->getClientOriginalExtension();
             
+            try {
             // Create image manager with GD driver
             $manager = new ImageManager(new Driver());
             
@@ -115,8 +126,17 @@ class CategoryController extends Controller
             });
             
             // Save compressed image
-            Storage::disk('public')->put('categories/' . $filename, $img->toJpeg(75));
-            $category->image = 'categories/' . $filename;
+                $filePath = 'categories/' . $filename;
+                $saved = Storage::disk('public')->put($filePath, $img->toJpeg(75));
+                
+                if ($saved) {
+                    $category->image = $filePath;
+                } else {
+                    throw new \Exception('Failed to save image file');
+                }
+            } catch (\Exception $e) {
+                return back()->withErrors(['image' => 'Failed to process image: ' . $e->getMessage()])->withInput();
+            }
         }
 
         $category->save();

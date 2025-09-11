@@ -7,8 +7,11 @@
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
         <div></div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ route('products.create') }}" class="btn btn-primary hover-lift">
+            <a href="{{ route('products.create') }}" class="btn btn-primary hover-lift me-2">
                 <i class="bi bi-plus-lg me-1"></i> Add Product
+            </a>
+            <a href="{{ route('products.export.cake-images') }}" class="btn btn-outline-primary hover-lift">
+                <i class="bi bi-download me-1"></i> Export Cake Images CSV
             </a>
         </div>
     </div>
@@ -41,6 +44,7 @@
                             <th class="border-0">Category</th>
                             <th class="border-0">Price</th>
                             <th class="border-0">Stock</th>
+                            <th class="border-0">Allergens</th>
                             <th class="border-0">Actions</th>
                         </tr>
                     </thead>
@@ -56,8 +60,9 @@
                             </td>
                             <td>{{ $product->name }}</td>
                             <td>{{ $product->category->name }}</td>
-                            <td>₨{{ number_format($product->price, 2) }}</td>
+                            <td>PKR {{ number_format($product->price, 2) }}</td>
                             <td>{{ $product->stock }}</td>
+                            <td>{{ $product->allergens ?? '-' }}</td>
                             <td>
                                 <div class="btn-group">
                                     <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-outline-secondary hover-lift" title="Edit">
@@ -75,7 +80,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center py-4">
+                            <td colspan="7" class="text-center py-4">
                                 <div class="text-muted">
                                     <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                                     <p class="mt-2 mb-0">No products found</p>

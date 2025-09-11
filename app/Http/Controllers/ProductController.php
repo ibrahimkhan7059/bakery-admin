@@ -30,7 +30,8 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('admin.products.create', compact('categories'));
+        $allProducts = Product::all();
+        return view('admin.products.create', compact('categories', 'allProducts'));
     }
 
     // 📌 Store product in database
@@ -39,33 +40,69 @@ class ProductController extends Controller
         try {
             \Log::info('Starting product creation process');
             
+            // Debug file upload information
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                \Log::info('Image file details', [
+                    'name' => $image->getClientOriginalName(),
+                    'size' => $image->getSize(),
+                    'size_mb' => round($image->getSize() / (1024 * 1024), 2) . ' MB',
+                    'mime' => $image->getMimeType(),
+                    'extension' => $image->getClientOriginalExtension(),
+                    'error' => $image->getError(),
+                    'error_message' => $image->getErrorMessage()
+                ]);
+            } else {
+                \Log::info('No image file received');
+            }
+            
             // Validate the request
+            try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255|regex:/^[A-Za-z\s\(\)\[\]]+$/',
-                'description' => 'required|string|min:10|max:1000',
+                    'name' => 'required|string|max:255|regex:/^[A-Za-z0-9\s\(\)\[\]\.\-]+$/',
+                    'description' => 'nullable|string|min:10|max:1000',
                 'price' => 'required|numeric|min:0|max:999999.99',
                 'stock' => 'required|integer|min:0|max:1000',
         'category_id' => 'required|exists:categories,id',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048|dimensions:min_width=100,min_height=100'
+                    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240|dimensions:min_width=100,min_height=100',
+                'allergens' => 'nullable|string|max:500',
+                'alternative_product_id' => 'nullable|exists:products,id'
             ], [
-                'name.regex' => 'Product name can only contain letters, spaces, and brackets',
-                'description.min' => 'Description must be at least 10 characters long',
+                    'name.regex' => 'Product name can contain letters, numbers, spaces, brackets, dots, and hyphens',
+                    'description.min' => 'Description must be at least 10 characters long if provided',
                 'description.max' => 'Description cannot exceed 1000 characters',
                 'price.max' => 'Price cannot exceed ₨999,999.99',
                 'stock.max' => 'Stock cannot exceed 1000 units',
                 'image.dimensions' => 'Image dimensions must be at least 100x100 pixels',
-                'image.max' => 'Image size cannot exceed 2MB'
+                    'image.max' => 'Image size cannot exceed 10MB (will be compressed to 2MB)'
             ]);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                \Log::error('Validation failed', ['errors' => $e->errors()]);
+                
+                // Try with more lenient image validation
+                $validated = $request->validate([
+                    'name' => 'required|string|max:255|regex:/^[A-Za-z0-9\s\(\)\[\]\.\-]+$/',
+                    'description' => 'nullable|string|min:10|max:1000',
+                    'price' => 'required|numeric|min:0|max:999999.99',
+                    'stock' => 'required|integer|min:0|max:1000',
+            'category_id' => 'required|exists:categories,id',
+                    'image' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:10240'
+                ], [
+                    'name.regex' => 'Product name can contain letters, numbers, spaces, brackets, dots, and hyphens',
+                    'description.min' => 'Description must be at least 10 characters long if provided',
+                    'description.max' => 'Description cannot exceed 1000 characters',
+                    'price.max' => 'Price cannot exceed ₨999,999.99',
+                    'stock.max' => 'Stock cannot exceed 1000 units',
+                    'image.max' => 'Image size cannot exceed 10MB (will be compressed to 2MB)'
+                ]);
+                
+                \Log::info('Fallback validation passed');
+            }
 
             \Log::info('Validation passed', ['data' => $validated]);
 
             // Create new product
-            $product = new Product();
-            $product->name = $validated['name'];
-            $product->description = $validated['description'];
-            $product->price = $validated['price'];
-            $product->stock = $validated['stock'];
-            $product->category_id = $validated['category_id'];
+            $product = Product::create($validated);
 
             // Handle image upload
     if ($request->hasFile('image')) {
@@ -76,57 +113,15 @@ class ProductController extends Controller
                 ]);
                 
         $image = $request->file('image');
-                $filename = time() . '_' . $image->getClientOriginalName();
-
-                // Create image manager with GD driver
-        $manager = new ImageManager(new Driver());
                 
-                // Read the image
-                $img = $manager->read($image->getRealPath());
+                // Process and compress image
+                $path = $this->processProductImage($image);
                 
-                // Get original dimensions
-                $width = $img->width();
-                $height = $img->height();
-                
-                // Calculate new dimensions while maintaining aspect ratio
-                $maxDimension = 800;
-                if ($width > $height) {
-                    $newWidth = $maxDimension;
-                    $newHeight = (int) ($height * ($maxDimension / $width));
-                } else {
-                    $newHeight = $maxDimension;
-                    $newWidth = (int) ($width * ($maxDimension / $height));
-                }
-                
-                // Resize image
-                $img->resize($newWidth, $newHeight, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                });
-                
-                // Save compressed image with higher compression
-                $path = 'products/' . $filename;
-                $fullPath = storage_path('app/public/' . $path);
-                
-                \Log::info('Attempting to save image', [
+                \Log::info('Image processed successfully', [
                     'path' => $path,
-                    'full_path' => $fullPath,
                     'original_size' => $image->getSize(),
-                    'new_dimensions' => [$newWidth, $newHeight]
-                ]);
-                
-                // Ensure directory exists
-                if (!file_exists(dirname($fullPath))) {
-                    mkdir(dirname($fullPath), 0755, true);
-                }
-                
-                // Save with higher compression (60% quality)
-                Storage::disk('public')->put($path, $img->toJpeg(60));
-                
-                \Log::info('Image saved successfully', [
-                    'path' => $path,
-                    'exists' => Storage::disk('public')->exists($path),
-                    'new_size' => Storage::disk('public')->size($path)
+                    'new_size' => Storage::disk('public')->size($path),
+                    'compression_ratio' => round((1 - Storage::disk('public')->size($path) / $image->getSize()) * 100, 2) . '%'
                 ]);
                 
                 $product->image = $path;
@@ -165,24 +160,27 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::all();
-        return view('admin.products.edit', compact('product', 'categories'));
+        $allProducts = Product::all();
+        return view('admin.products.edit', compact('product', 'categories', 'allProducts'));
     }
 
     // 📌 Update product in database
     public function update(Request $request, Product $product)
 {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|regex:/^[^0-9]+$/',
-        'category_id' => 'required|exists:categories,id',
+            'name' => 'required|string|max:255|regex:/^[A-Za-z0-9\s\(\)\[\]\.\-]+$/',
+            'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_active' => 'boolean'
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
+            'is_active' => 'boolean',
+            'allergens' => 'nullable|string|max:500',
+            'alternative_product_id' => 'nullable|exists:products,id'
         ], [
             'name.required' => 'Product name is required',
             'name.max' => 'Product name cannot exceed 255 characters',
-            'name.regex' => 'Product name cannot contain numbers. Letters, spaces, and special characters are allowed.',
+            'name.regex' => 'Product name can contain letters, numbers, spaces, brackets, dots, and hyphens',
             'category_id.required' => 'Please select a category',
             'category_id.exists' => 'Selected category is invalid',
             'price.required' => 'Price is required',
@@ -191,19 +189,22 @@ class ProductController extends Controller
             'stock.required' => 'Stock quantity is required',
             'stock.integer' => 'Stock must be a whole number',
             'stock.min' => 'Stock cannot be negative',
-            'description.required' => 'Product description is required',
+            'description.required' => 'Product description is optional',
             'image.image' => 'File must be an image',
             'image.mimes' => 'Image must be in jpeg, png, jpg, or gif format',
-            'image.max' => 'Image size cannot exceed 2MB'
+            'image.max' => 'Image size cannot exceed 10MB (will be compressed to 2MB)'
     ]);
 
     if ($request->hasFile('image')) {
             // Delete old image
             if ($product->image) {
-                Storage::delete($product->image);
+                Storage::disk('public')->delete($product->image);
             }
-            // Store new image
-            $validated['image'] = $request->file('image')->store('products', 'public');
+            
+            // Process and compress new image
+            $image = $request->file('image');
+            $path = $this->processProductImage($image);
+            $validated['image'] = $path;
         }
 
         $product->update($validated);
@@ -241,6 +242,71 @@ class ProductController extends Controller
         return "products/{$filename}";
     }
 
+    /**
+     * Process and compress product image to ensure size is under 2MB
+     */
+    private function processProductImage($image)
+    {
+        $filename = time() . '_' . $image->getClientOriginalName();
+        
+        // Create image manager with GD driver
+        $manager = new ImageManager(new Driver());
+        
+        // Read the image
+        $img = $manager->read($image->getRealPath());
+        
+        // Get original dimensions
+        $width = $img->width();
+        $height = $img->height();
+        
+        // Calculate new dimensions while maintaining aspect ratio
+        $maxDimension = 800;
+        if ($width > $height) {
+            $newWidth = $maxDimension;
+            $newHeight = (int) ($height * ($maxDimension / $width));
+        } else {
+            $newHeight = $maxDimension;
+            $newWidth = (int) ($width * ($maxDimension / $height));
+        }
+        
+        // Resize image
+        $img->resize($newWidth, $newHeight, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+        
+        // Adaptive compression to ensure size is under 2MB
+        $quality = 80; // Start with 80% quality
+        $maxSize = 2 * 1024 * 1024; // 2MB in bytes
+        
+        do {
+            // Save with current quality
+            $path = 'products/' . $filename;
+            Storage::disk('public')->put($path, $img->toJpeg($quality));
+            
+            $currentSize = Storage::disk('public')->size($path);
+            
+            // If still too large, reduce quality
+            if ($currentSize > $maxSize && $quality > 20) {
+                Storage::disk('public')->delete($path);
+                $quality -= 10; // Reduce quality by 10%
+            } else {
+                break; // Size is acceptable
+            }
+        } while ($quality > 20);
+        
+        // Log compression details
+        \Log::info('Image compression completed', [
+            'original_size' => $image->getSize(),
+            'final_size' => Storage::disk('public')->size($path),
+            'final_quality' => $quality,
+            'compression_ratio' => round((1 - Storage::disk('public')->size($path) / $image->getSize()) * 100, 2) . '%',
+            'dimensions' => [$newWidth, $newHeight]
+        ]);
+        
+        return $path;
+    }
+
     public function deleteImage(Product $product)
 {
     if ($product->image) {
@@ -251,5 +317,42 @@ class ProductController extends Controller
 
         return redirect()->route('products.edit', $product)
             ->with('success', 'Product image deleted successfully.');
+}
+
+    // 📌 Export CSV of cake product images only
+    public function exportCakeImagesCsv()
+    {
+        $products = Product::with('category')
+            ->whereHas('category', function ($q) {
+                $q->where('name', 'like', '%cake%');
+            })
+            ->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="cake_images.csv"',
+        ];
+
+        $callback = function () use ($products) {
+            $output = fopen('php://output', 'w');
+            // CSV Header
+            fputcsv($output, ['id', 'name', 'category', 'image_path', 'image_url']);
+
+            foreach ($products as $product) {
+                $imagePath = $product->image ?? '';
+                $imageUrl = $imagePath ? asset('storage/' . $imagePath) : '';
+                fputcsv($output, [
+                    $product->id,
+                    $product->name,
+                    optional($product->category)->name,
+                    $imagePath,
+                    $imageUrl,
+                ]);
+            }
+
+            fclose($output);
+        };
+
+        return response()->stream($callback, 200, $headers);
 }
 }

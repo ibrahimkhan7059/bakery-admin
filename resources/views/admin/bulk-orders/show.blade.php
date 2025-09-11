@@ -88,7 +88,6 @@
                                     <th>Product</th>
                                     <th>Quantity</th>
                                     <th>Unit Price</th>
-                                    <th>Discount</th>
                                     <th>Subtotal</th>
                                     <th>Notes</th>
                                 </tr>
@@ -98,9 +97,8 @@
                                 <tr>
                                     <td>{{ $item->product_name }}</td>
                                     <td>{{ $item->quantity }}</td>
-                                    <td>₨{{ number_format($item->price, 2) }}</td>
-                                    <td>{{ $item->discount * 100 }}%</td>
-                                    <td>₨{{ number_format($item->price * $item->quantity * (1 - $item->discount), 2) }}</td>
+                                    <td>PKR {{ number_format($item->price, 2) }}</td>
+                                    <td>PKR {{ number_format($item->price * $item->quantity * (1 - $item->discount), 2) }}</td>
                                     <td>{{ $item->notes ?? 'N/A' }}</td>
                                 </tr>
                                 @endforeach
@@ -108,16 +106,24 @@
                             <tfoot>
                                 <tr>
                                     <th colspan="4" class="text-end">Total Amount:</th>
-                                    <th>₨{{ number_format($bulkOrder->total_amount, 2) }}</th>
+                                    <th>PKR {{ number_format($bulkOrder->items->sum(function($item) { return $item->price * $item->quantity; }), 2) }}</th>
+                                </tr>
+                                <tr>
+                                    <th colspan="4" class="text-end">Discount Amount:</th>
+                                    <th>PKR {{ number_format(($bulkOrder->items->sum(function($item) { return $item->price * $item->quantity; }) - $bulkOrder->total_amount), 2) }}</th>
+                                </tr>
+                                <tr>
+                                    <th colspan="4" class="text-end">Final Amount:</th>
+                                    <th>PKR {{ number_format($bulkOrder->total_amount, 2) }}</th>
                                 </tr>
                                 @if($bulkOrder->advance_payment > 0)
                                 <tr>
                                     <th colspan="4" class="text-end">Advance Payment:</th>
-                                    <th>₨{{ number_format($bulkOrder->advance_payment, 2) }}</th>
+                                    <th>PKR {{ number_format($bulkOrder->advance_payment, 2) }}</th>
                                 </tr>
                                 <tr>
                                     <th colspan="4" class="text-end">Remaining Balance:</th>
-                                    <th>₨{{ number_format($bulkOrder->total_amount - $bulkOrder->advance_payment, 2) }}</th>
+                                    <th>PKR {{ number_format($bulkOrder->final_amount - $bulkOrder->advance_payment, 2) }}</th>
                                 </tr>
                                 @endif
                             </tfoot>
@@ -136,8 +142,8 @@
                 </div>
                 <div class="card-body">
                     <p><strong>Payment Method:</strong> {{ ucfirst($bulkOrder->payment_method) }}</p>
-                    <p><strong>Advance Payment:</strong> ₨{{ number_format($bulkOrder->advance_payment, 2) }}</p>
-                    <p><strong>Remaining Balance:</strong> ₨{{ number_format($bulkOrder->remaining_payment, 2) }}</p>
+                    <p><strong>Advance Payment:</strong> PKR {{ number_format($bulkOrder->advance_payment, 2) }}</p>
+                    <p><strong>Remaining Balance:</strong> PKR {{ number_format($bulkOrder->remaining_payment, 2) }}</p>
                 </div>
             </div>
 
@@ -195,4 +201,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

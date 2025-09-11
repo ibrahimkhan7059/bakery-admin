@@ -298,6 +298,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.product-select').forEach(select => {
         select.addEventListener('change', function() {
             updateProductPrice(this);
+            // Set quantity to 1 if empty when product is selected
+            const quantityInput = this.closest('.product-item').querySelector('.product-quantity');
+            if (quantityInput && (!quantityInput.value || quantityInput.value === '0')) {
+                quantityInput.value = '1';
+                calculateTotals();
+            }
         });
     });
 
@@ -326,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Clear and update quantity input
         const quantity = template.querySelector('.product-quantity');
-        quantity.value = '';
+        quantity.value = '1'; // Set default quantity to 1
         quantity.addEventListener('input', calculateTotals);
 
         // Show remove button
@@ -443,4 +449,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
-@endsection 
+@endsection

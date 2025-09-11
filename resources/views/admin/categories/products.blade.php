@@ -37,7 +37,7 @@
                                 @endif
                             </td>
                             <td>{{ $product->name }}</td>
-                            <td>₨{{ number_format($product->price, 2) }}</td>
+                            <td>PKR {{ number_format($product->price, 2) }}</td>
                             <td>{{ $product->stock }}</td>
                             <td>
                                 <div class="btn-group">

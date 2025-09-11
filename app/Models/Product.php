@@ -17,12 +17,16 @@ class Product extends Model
         'price',
         'stock',
         'image',
-        'category_id'
+        'category_id',
+        'allergens',
+        'alternative_product_id'
     ];
     
     protected $casts = [
         'price' => 'decimal:2',
-        'stock' => 'integer'
+        'stock' => 'integer',
+        'allergens' => 'string', // changed from 'json' to 'string'
+        'alternative_product_id' => 'integer',
     ];
     
     public function category(): BelongsTo

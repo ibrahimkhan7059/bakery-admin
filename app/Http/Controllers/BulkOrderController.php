@@ -241,6 +241,16 @@ class BulkOrderController extends Controller
             $bulkOrder->advance_payment = $validated['advance_payment'] ?? 0;
             $bulkOrder->payment_status = $validated['payment_status'];
             $bulkOrder->special_instructions = $validated['special_instructions'];
+            // Save direct amounts from app if provided
+            if (isset($validated['total_amount'])) {
+                $bulkOrder->total_amount = $validated['total_amount'];
+            }
+            if (isset($validated['discount_amount'])) {
+                $bulkOrder->discount_amount = $validated['discount_amount'];
+            }
+            if (isset($validated['final_amount'])) {
+                $bulkOrder->final_amount = $validated['final_amount'];
+            }
             $bulkOrder->save();
 
             // Handle products
@@ -386,4 +396,4 @@ class BulkOrderController extends Controller
     {
         return view('admin.bulk-orders.invoice', compact('bulkOrder'));
     }
-} 
+}
