@@ -11,7 +11,20 @@ class ProfileController extends Controller
 {
     public function show(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user();
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?? '',
+                'address' => $user->address ?? '',
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ]
+        ]);
     }
 
     public function update(Request $request)
@@ -21,7 +34,8 @@ class ProfileController extends Controller
         $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'phone' => ['sometimes', 'string', 'regex:/^(03[0-9]{9}|\+923[0-9]{9})$/'],
+            'phone' => ['sometimes', 'string', 'max:20'],
+            'address' => ['sometimes', 'string', 'max:500'],
             'current_password' => ['required_with:password', 'current_password'],
             'password' => ['sometimes', 'confirmed', 'min:8'],
         ]);
@@ -38,6 +52,10 @@ class ProfileController extends Controller
             $user->phone = $request->phone;
         }
 
+        if ($request->has('address')) {
+            $user->address = $request->address;
+        }
+
         if ($request->has('password')) {
             $user->password = Hash::make($request->password);
         }
@@ -45,8 +63,57 @@ class ProfileController extends Controller
         $user->save();
 
         return response()->json([
+            'success' => true,
             'message' => 'Profile updated successfully',
-            'user' => $user
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?? '',
+                'address' => $user->address ?? '',
+            ]
         ]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            $request->validate([
+                'current_password' => ['required'],
+                'password' => ['required', 'min:8'],
+                'password_confirmation' => ['required', 'same:password'],
+            ]);
+
+            // Check if current password is correct
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Current password is incorrect'
+                ], 422);
+            }
+
+            // Update password
+            $user->password = Hash::make($request->password);
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Password changed successfully'
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to change password: ' . $e->getMessage()
+            ], 500);
+        }
     }
 } 

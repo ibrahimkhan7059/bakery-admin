@@ -17,17 +17,30 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'customer_name',
+        'customer_email',
         'customer_phone',
         'delivery_address',
+        'delivery_type',
+        'city',
         'status',
         'total_amount',
+        'subtotal',
+        'delivery_charges',
         'payment_status',
         'payment_method',
         'payment_receipt',
         'delivery_time',
         'estimated_delivery_time',
         'priority',
-        'notes'
+        'notes',
+        'special_notes',
+        // Payment related
+        'basket_id',
+        'payment_status_payfast',
+        'payment_method_type',
+        'transaction_id',
+        'payment_error',
+        'payment_date'
     ];
 
     protected $casts = [
@@ -39,6 +52,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
     }
 
     public function products()

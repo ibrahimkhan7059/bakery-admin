@@ -18,6 +18,8 @@ return [
         // as the port Flutter web uses can change.
         'http://localhost:*',
         'http://127.0.0.1:*',
+        'http://192.168.100.81:*',
+        '*', // Allow all origins for mobile development
         // If you know the exact port from your Flutter web logs (e.g., 56269),
         // you can add it specifically:
         // 'http://127.0.0.1:56269',

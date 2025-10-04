@@ -22,7 +22,7 @@ return new class extends Migration
             $table->decimal('total_amount', 10, 2);
             $table->enum('status', ['pending', 'confirmed', 'processing', 'completed', 'cancelled'])->default('pending');
             $table->enum('payment_status', ['pending', 'partial', 'paid'])->default('pending');
-            $table->enum('payment_method', ['cash', 'gcash', 'bank_transfer'])->default('cash');
+            $table->enum('payment_method', ['cash', 'online'])->default('cash');
             $table->decimal('advance_payment', 10, 2)->default(0);
             $table->text('special_instructions')->nullable();
             $table->text('cancellation_reason')->nullable();

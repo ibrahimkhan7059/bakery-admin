@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\BulkOrderController;
 use App\Http\Controllers\Api\CustomCakeOrderController;
 use App\Http\Controllers\Api\CakeConfigController;
 use App\Http\Controllers\Api\AICakeController;
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,10 @@ Route::get('/v1/bulk-orders/{bulkOrder}', [BulkOrderController::class, 'show']);
 Route::put('/v1/bulk-orders/{bulkOrder}/status', [BulkOrderController::class, 'updateStatus']);
 Route::delete('/v1/bulk-orders/{bulkOrder}', [BulkOrderController::class, 'destroy']);
 
+// Guest Order Routes (for checkout)
+Route::post('/orders', [OrderController::class, 'storeGuestOrder']);
+Route::get('/orders/{order}', [OrderController::class, 'showGuestOrder']);
+
 // Protected routes (Sanctum middleware)
 Route::middleware('auth:sanctum')->group(function () {
     // Authentication
@@ -54,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Profile
     Route::get('/v1/profile', [ProfileController::class, 'show']);
     Route::put('/v1/profile', [ProfileController::class, 'update']);
+    Route::put('/v1/profile/change-password', [ProfileController::class, 'changePassword']);
 
     // Cart
     Route::get('/v1/cart', [CartController::class, 'show']);
@@ -81,4 +87,12 @@ Route::prefix('v1/ai-cake')->group(function () {
     Route::get('/categories', [AICakeController::class, 'getCakeCategories']);
     Route::get('/debug', [AICakeController::class, 'debugProducts']); // Debug endpoint
     Route::get('/products-by-category', [AICakeController::class, 'getProductsByCategory']); // Get products by category
+});
+
+// PayFast Payment Routes
+Route::prefix('payment')->group(function () {
+    Route::post('/initiate', [PaymentController::class, 'initiatePayment']);
+    Route::post('/success', [PaymentController::class, 'paymentSuccess']);
+    Route::post('/failure', [PaymentController::class, 'paymentFailure']);
+    Route::get('/status', [PaymentController::class, 'checkPaymentStatus']);
 });

@@ -140,9 +140,8 @@
                             <select class="form-control @error('payment_method') is-invalid @enderror" 
                                 id="payment_method" name="payment_method" required>
                                 <option value="">Select Method</option>
-                                <option value="cash" {{ old('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
-                                <option value="gcash" {{ old('payment_method') == 'gcash' ? 'selected' : '' }}>GCash</option>
-                                <option value="bank_transfer" {{ old('payment_method') == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                                <option value="cash" {{ old('payment_method') == 'cash' ? 'selected' : '' }}>Cash on Delivery</option>
+                                <option value="online" {{ old('payment_method') == 'online' ? 'selected' : '' }}>Online Payment (PayFast)</option>
                             </select>
                             @error('payment_method')
                                 <div class="invalid-feedback">{{ $message }}</div>

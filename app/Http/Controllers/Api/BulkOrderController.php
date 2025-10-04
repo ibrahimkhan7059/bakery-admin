@@ -12,13 +12,17 @@ class BulkOrderController extends Controller
 {
     public function store(Request $request)
     {
+        // Debug logging
+        \Log::info('Bulk Order API Request Data:', $request->all());
+        \Log::info('Payment Method Received:', ['payment_method' => $request->payment_method]);
+        
         $request->validate([
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_phone' => ['required', 'string', 'max:20'],
             'delivery_date' => ['required', 'date'],
             'delivery_address' => ['required', 'string'],
-            'payment_method' => ['required', 'in:cash,online,credit'],
-            'advance_payment' => ['nullable', 'numeric', 'min:0'],
+            'payment_method' => ['required', 'in:cash,online'],
+            'advance_payment' => ['required', 'numeric', 'min:0'],
             'total_amount' => ['required', 'numeric', 'min:0'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer'],

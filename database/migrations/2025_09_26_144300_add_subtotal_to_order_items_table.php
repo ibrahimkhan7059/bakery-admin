@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::create('order_items', function (Blueprint $table) {
-        //     $table->id();
-        //     $table->timestamps();
-        // });
+        Schema::table('order_items', function (Blueprint $table) {
+            $table->decimal('subtotal', 10, 2)->after('price');
+        });
     }
 
     /**
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('order_items');
+        Schema::table('order_items', function (Blueprint $table) {
+            $table->dropColumn('subtotal');
+        });
     }
 };
