@@ -119,11 +119,13 @@ class OrderController extends Controller
                 $discount = 0.05; // 5% discount for 5+ items
             }
             
+            $itemSubtotal = $product->price * $quantity;
             $order->products()->attach($product->id, [
                 'quantity' => $quantity,
                 'price' => $product->price,
                 'discount' => $discount,
                 'product_name' => $product->name,
+                'subtotal' => $itemSubtotal,
             ]);
 
             // Update product stock
@@ -216,11 +218,13 @@ class OrderController extends Controller
                 $discount = 0.05; // 5% discount for 5+ items
             }
             
+            $itemSubtotal = $product->price * $quantity;
             $order->products()->attach($product->id, [
                 'quantity' => $quantity,
                 'price' => $product->price,
                 'discount' => $discount,
                 'product_name' => $product->name,
+                'subtotal' => $itemSubtotal,
             ]);
 
             // Update product stock

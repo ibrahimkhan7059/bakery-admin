@@ -53,12 +53,13 @@ class OrderController extends Controller
 
             // Create order items
             foreach ($request->items as $item) {
+                $itemSubtotal = $item['price'] * $item['quantity'];
                 $order->items()->create([
                     'product_id' => $item['id'],
                     'product_name' => $item['name'],
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
-                    'subtotal' => $item['price'] * $item['quantity'],
+                    'subtotal' => $itemSubtotal,
                 ]);
             }
 
@@ -153,12 +154,13 @@ class OrderController extends Controller
 
             // Create order items
             foreach ($request->items as $item) {
+                $itemSubtotal = $item['price'] * $item['quantity'];
                 $order->items()->create([
                     'product_id' => $item['id'],
                     'product_name' => $item['name'] ?? 'Product',
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
-                    'subtotal' => $item['price'] * $item['quantity']
+                    'subtotal' => $itemSubtotal,
                 ]);
 
                 // Update product stock if needed
@@ -188,12 +190,82 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        $orders = Order::where('user_id', $request->user()->id)
-            ->with('items.product')
-            ->latest()
-            ->get();
+        try {
+            $user = $request->user();
+            $orders = collect();
+            
+            if ($user) {
+                Log::info('Fetching orders for user: ' . $user->id . ' (' . $user->email . ')');
+                
+                // Get orders for authenticated user
+                $authenticatedOrders = Order::where('user_id', $user->id)
+                    ->with('items.product')
+                    ->latest()
+                    ->get();
+                
+                Log::info('Authenticated orders found: ' . $authenticatedOrders->count());
+                
+                // Also get guest orders by matching email
+                $guestOrders = Order::whereNull('user_id')
+                    ->where('customer_email', $user->email)
+                    ->with('items.product')
+                    ->latest()
+                    ->get();
+                
+                Log::info('Guest orders found: ' . $guestOrders->count());
+                
+                $orders = $authenticatedOrders->concat($guestOrders)->sortByDesc('created_at');
+                Log::info('Total orders combined: ' . $orders->count());
+            }
+            
+            // Transform the data to ensure consistent format
+            $formattedOrders = $orders->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'customer_name' => $order->customer_name,
+                    'customer_email' => $order->customer_email,
+                    'customer_phone' => $order->customer_phone,
+                    'delivery_type' => $order->delivery_type,
+                    'delivery_address' => $order->delivery_address,
+                    'special_notes' => $order->special_notes,
+                    'total_amount' => $order->total_amount,
+                    'subtotal' => $order->subtotal,
+                    'delivery_charges' => $order->delivery_charges,
+                    'status' => $order->status,
+                    'user_id' => $order->user_id,
+                    'created_at' => $order->created_at,
+                    'updated_at' => $order->updated_at,
+                    'items' => $order->items ? $order->items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'product_id' => $item->product_id,
+                            'product_name' => $item->product_name,
+                            'quantity' => $item->quantity,
+                            'price' => $item->price,
+                            'subtotal' => $item->subtotal,
+                            'product' => $item->product ? [
+                                'id' => $item->product->id,
+                                'name' => $item->product->name,
+                                'price' => $item->product->price,
+                            ] : null
+                        ];
+                    }) : []
+                ];
+            });
 
-        return response()->json($orders);
+            return response()->json([
+                'data' => $formattedOrders->values(),
+                'total' => $formattedOrders->count(),
+                'user_id' => $user ? $user->id : null,
+                'user_email' => $user ? $user->email : null
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching orders: ' . $e->getMessage());
+            return response()->json([
+                'data' => [],
+                'error' => 'Failed to fetch orders'
+            ], 500);
+        }
     }
 
     public function show(Request $request, Order $order)
