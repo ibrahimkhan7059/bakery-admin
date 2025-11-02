@@ -22,7 +22,20 @@ class CategoryController extends Controller
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $categories = $query->withCount('products')->oldest()->paginate(5);
+        // Get per_page from request, default to 5 if not provided
+        $perPage = $request->get('per_page', 5);
+        
+        // Validate per_page value (only allow specific values)
+        $allowedPerPage = [5, 10, 15, 25, 50, 100];
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 5;
+        }
+
+        $categories = $query->withCount('products')->oldest()->paginate($perPage);
+        
+        // Append query parameters to pagination links
+        $categories->appends($request->query());
+        
         return view('admin.categories.index', compact('categories'));
     }
 

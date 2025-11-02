@@ -3,6 +3,15 @@
 @section('title','Cake Configuration')
 
 @section('content')
+<style>
+	/* Hide default dropdown arrow */
+	.position-relative select {
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		appearance: none;
+		background-image: none;
+	}
+</style>
 <div class="container-fluid">
 	<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4">
 		<div></div>
@@ -10,15 +19,20 @@
 	</div>
 
 	@if(session('success'))
-		<div class="alert alert-success">{{ session('success') }}</div>
+		<div class="alert alert-success alert-dismissible fade show">
+			<i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+		</div>
 	@endif
 	@if($errors->any())
-		<div class="alert alert-danger">
-			<ul class="mb-0">
+		<div class="alert alert-danger alert-dismissible fade show">
+			<strong><i class="bi bi-exclamation-triangle me-2"></i>Validation Error:</strong>
+			<ul class="mb-0 mt-2">
 				@foreach($errors->all() as $error)
 					<li>{{ $error }}</li>
 				@endforeach
 			</ul>
+			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 		</div>
 	@endif
 
@@ -46,12 +60,15 @@
 						@csrf
 						<div class="col-7">
 							<label class="form-label">Size Name</label>
-							<select class="form-select" id="size_name_select">
-								@foreach($allSizeOptions as $opt)
-									<option value="{{ $opt }}">{{ $opt }}</option>
-								@endforeach
-								<option value="__other__">Other...</option>
-							</select>
+							<div class="position-relative">
+								<select class="form-select" id="size_name_select">
+									@foreach($allSizeOptions as $opt)
+										<option value="{{ $opt }}">{{ $opt }}</option>
+									@endforeach
+									<option value="__other__">Other...</option>
+								</select>
+								<i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+							</div>
 							<input type="text" name="name" id="size_name_custom" class="form-control mt-2 d-none" placeholder="e.g., 7 Pounds">
 						</div>
 						<div class="col-5">
@@ -99,19 +116,25 @@
 			<div class="card shadow-sm">
 				<div class="card-header bg-white fw-semibold">Options (Tags) & Prices</div>
 				<div class="card-body">
-					<form action="{{ route('admin.cake-config.option.store') }}" method="POST" class="row g-2 align-items-end mb-3">
+					<form action="{{ route('admin.cake-config.option.store') }}" method="POST" class="row g-2 align-items-end mb-3" id="optionCreateForm">
 						@csrf
 						<div class="col-md-4">
 							<label class="form-label">Group</label>
-							<select name="group_key" class="form-select" required>
-								<option value="flavor">Flavor</option>
-								<option value="filling">Filling</option>
-								<option value="frosting">Frosting</option>
-							</select>
+							<div class="position-relative">
+								<select name="group_key" class="form-select" required>
+									<option value="flavor">Flavor</option>
+									<option value="filling">Filling</option>
+									<option value="frosting">Frosting</option>
+								</select>
+								<i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+							</div>
 						</div>
 						<div class="col-md-5">
 							<label class="form-label">Option Name</label>
-							<select id="option_name_select" class="form-select"></select>
+							<div class="position-relative">
+								<select id="option_name_select" class="form-select"></select>
+								<i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+							</div>
 							<input type="text" id="option_name_custom" class="form-control mt-2 d-none" placeholder="e.g., Vanilla">
 							<input type="hidden" name="name" id="option_name_hidden">
 						</div>
@@ -173,26 +196,59 @@
 		const form = document.getElementById('sizeCreateForm');
 
 		function syncNameField() {
+			// Remove any existing hidden name input first
+			const existingHidden = form.querySelector('input[type="hidden"][name="name"]');
+			if (existingHidden) {
+				existingHidden.remove();
+			}
+			
 			if (select.value === '__other__') {
 				custom.classList.remove('d-none');
 				custom.setAttribute('name','name');
 				custom.required = true;
+				custom.focus();
 			} else {
 				custom.classList.add('d-none');
 				custom.removeAttribute('name');
 				custom.required = false;
-				let hidden = form.querySelector('input[type="hidden"][name="name"]');
-				if (!hidden) {
-					hidden = document.createElement('input');
-					hidden.type = 'hidden';
-					hidden.name = 'name';
-					form.appendChild(hidden);
-				}
+				custom.value = ''; // Clear custom input
+				
+				// Create hidden input with selected value
+				const hidden = document.createElement('input');
+				hidden.type = 'hidden';
+				hidden.name = 'name';
 				hidden.value = select.value;
+				form.appendChild(hidden);
 			}
 		}
 		select?.addEventListener('change', syncNameField);
 		syncNameField();
+
+		// Add form validation before submission
+		form?.addEventListener('submit', function(e) {
+			const finalName = getFinalSizeName();
+			const existingSizes = @json($sizes->pluck('name')->toArray());
+			
+			if (existingSizes.includes(finalName)) {
+				e.preventDefault();
+				showErrorModal('Duplicate Size', 'Size "' + finalName + '" already exists. Please choose a different name.');
+				if (select.value === '__other__') {
+					setTimeout(() => {
+						custom.focus();
+						custom.select();
+					}, 500);
+				}
+				return false;
+			}
+		});
+
+		function getFinalSizeName() {
+			if (select.value === '__other__') {
+				return custom.value.trim();
+			} else {
+				return select.value;
+			}
+		}
 
 		// Populate option dropdown by selected group
 		const optionSelect = document.getElementById('option_name_select');
@@ -240,6 +296,84 @@
 		optionSelect?.addEventListener('change', (e)=> applyOptionSelection(e.target.value));
 		optionCustom?.addEventListener('input', ()=> optionHidden.value = optionCustom.value);
 		refreshOptions();
+
+		// Add validation for option form
+		const optionForm = document.getElementById('optionCreateForm');
+		if (optionForm) {
+			optionForm.addEventListener('submit', function(e) {
+				const groupKey = groupSelect.value;
+				const optionName = optionHidden.value.trim();
+				
+				if (!optionName) {
+					e.preventDefault();
+					showErrorModal('Missing Option Name', 'Please enter an option name.');
+					return false;
+				}
+				
+				// Check if option already exists in selected group
+				const selectedGroup = groups.find(g => g.key === groupKey);
+				if (selectedGroup) {
+					const existingNames = selectedGroup.options.map(o => o.name.toLowerCase());
+					if (existingNames.includes(optionName.toLowerCase())) {
+						e.preventDefault();
+						showErrorModal('Duplicate Option', 'Option "' + optionName + '" already exists in ' + selectedGroup.label + ' group. Please choose a different name.');
+						if (optionSelect.value === '__other__') {
+							setTimeout(() => {
+								optionCustom.focus();
+								optionCustom.select();
+							}, 500);
+						}
+						return false;
+					}
+				}
+			});
+		}
+
+		// Beautiful error modal function
+		function showErrorModal(title, message) {
+			// Remove existing modal if any
+			const existingModal = document.getElementById('errorModal');
+			if (existingModal) {
+				existingModal.remove();
+			}
+
+			// Create modal
+			const modal = document.createElement('div');
+			modal.id = 'errorModal';
+			modal.className = 'modal fade';
+			modal.tabIndex = -1;
+			modal.setAttribute('aria-hidden', 'true');
+			modal.innerHTML = `
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content border-0 shadow-lg">
+						<div class="modal-header bg-danger text-white border-0">
+							<h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>${title}</h5>
+							<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body text-center py-4">
+							<div class="mb-3">
+								<i class="bi bi-x-circle text-danger" style="font-size: 3rem;"></i>
+							</div>
+							<p class="mb-0 fs-6">${message}</p>
+						</div>
+						<div class="modal-footer border-0 justify-content-center">
+							<button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">
+								<i class="bi bi-check-circle me-1"></i> Got it
+							</button>
+						</div>
+					</div>
+				</div>
+			`;
+			
+			document.body.appendChild(modal);
+			const bootstrapModal = new bootstrap.Modal(modal);
+			bootstrapModal.show();
+			
+			// Auto remove modal after it's hidden
+			modal.addEventListener('hidden.bs.modal', () => {
+				modal.remove();
+			});
+		}
 
 		// Edit modal
 		const editModal = document.getElementById('editSizeModal');
@@ -311,35 +445,51 @@
 
 <!-- Global Edit Size Modal -->
 <div class="modal fade" id="editSizeModal" tabindex="-1" aria-hidden="true">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title">Edit Size</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content border-0 shadow-lg">
+			<div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+				<h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edit Cake Size</h5>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<form action="#" method="POST">
 				@csrf
 				@method('PUT')
-				<div class="modal-body">
+				<div class="modal-body p-4">
+					<div class="text-center mb-4">
+						<i class="bi bi-cake2" style="font-size: 2.5rem; color: #ff6b6b;"></i>
+						<p class="text-muted mt-2 mb-0">Update cake size details</p>
+					</div>
+					
 					<div class="mb-3">
-						<label class="form-label">Size Name</label>
-						<select id="edit_size_name_select" class="form-select">
-							@foreach($allSizeOptions as $opt)
-								<option value="{{ $opt }}">{{ $opt }}</option>
-							@endforeach
-							<option value="__other__">Other...</option>
-						</select>
-						<input id="edit_size_name_custom" type="text" class="form-control mt-2 d-none" placeholder="e.g., 7 Pounds">
+						<label class="form-label fw-semibold"><i class="bi bi-tag me-1"></i>Size Name</label>
+						<div class="position-relative">
+							<select id="edit_size_name_select" class="form-select border-2">
+								@foreach($allSizeOptions as $opt)
+									<option value="{{ $opt }}">{{ $opt }}</option>
+								@endforeach
+								<option value="__other__">Other...</option>
+							</select>
+							<i class="fas fa-chevron-down position-absolute" style="right: 15px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+						</div>
+						<input id="edit_size_name_custom" type="text" class="form-control mt-2 d-none border-2" placeholder="e.g., 7 Pounds">
 						<input id="edit_size_name_hidden" type="hidden" name="name" value="">
 					</div>
+					
 					<div class="mb-3">
-						<label class="form-label">Base Price (PKR)</label>
-						<input name="base_price" type="number" step="0.01" class="form-control" required>
+						<label class="form-label fw-semibold"><i class="bi bi-currency-dollar me-1"></i>Base Price (PKR)</label>
+						<div class="input-group">
+							<span class="input-group-text bg-light border-2"><i class="bi bi-cash"></i></span>
+							<input name="base_price" type="number" step="0.01" class="form-control border-2" required placeholder="0.00">
+						</div>
 					</div>
 				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-					<button class="btn btn-primary">Update</button>
+				<div class="modal-footer border-0 bg-light">
+					<button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+						<i class="bi bi-x-circle me-1"></i> Cancel
+					</button>
+					<button class="btn px-4" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; border: none;">
+						<i class="bi bi-check-circle me-1"></i> Update Size
+					</button>
 				</div>
 			</form>
 		</div>
@@ -348,28 +498,44 @@
 
 <!-- Global Edit Option Modal -->
 <div class="modal fade" id="editOptionModal" tabindex="-1" aria-hidden="true">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title">Edit Option</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content border-0 shadow-lg">
+			<div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+				<h5 class="modal-title"><i class="bi bi-gear me-2"></i>Edit Cake Option</h5>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<form action="#" method="POST">
 				@csrf
 				@method('PUT')
-				<div class="modal-body">
-					<div class="mb-3">
-						<label class="form-label">Option Name</label>
-						<input name="name" type="text" class="form-control">
+				<div class="modal-body p-4">
+					<div class="text-center mb-4">
+						<i class="bi bi-palette" style="font-size: 2.5rem; color: #ff6b6b;"></i>
+						<p class="text-muted mt-2 mb-0">Update option details</p>
 					</div>
+					
 					<div class="mb-3">
-						<label class="form-label">Price (PKR)</label>
-						<input name="price" type="number" step="0.01" class="form-control" required>
+						<label class="form-label fw-semibold"><i class="bi bi-tag me-1"></i>Option Name</label>
+						<div class="input-group">
+							<span class="input-group-text bg-light border-2"><i class="bi bi-bookmark"></i></span>
+							<input name="name" type="text" class="form-control border-2" placeholder="e.g., Vanilla">
+						</div>
+					</div>
+					
+					<div class="mb-3">
+						<label class="form-label fw-semibold"><i class="bi bi-currency-dollar me-1"></i>Price (PKR)</label>
+						<div class="input-group">
+							<span class="input-group-text bg-light border-2"><i class="bi bi-cash"></i></span>
+							<input name="price" type="number" step="0.01" class="form-control border-2" required placeholder="0.00">
+						</div>
 					</div>
 				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-					<button class="btn btn-primary">Update</button>
+				<div class="modal-footer border-0 bg-light">
+					<button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+						<i class="bi bi-x-circle me-1"></i> Cancel
+					</button>
+					<button class="btn px-4" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; border: none;">
+						<i class="bi bi-check-circle me-1"></i> Update Option
+					</button>
 				</div>
 			</form>
 		</div>

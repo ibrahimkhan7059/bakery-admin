@@ -18,6 +18,20 @@
         />
         <!-- Custom Theme -->
         <link href="{{ asset('css/custom-theme.css') }}" rel="stylesheet" />
+        
+        <!-- Custom Purple Badge Styles -->
+        <style>
+            .bg-purple {
+                background-color: #6f42c1 !important;
+            }
+            .badge.bg-purple {
+                background-color: #6f42c1 !important;
+                color: white !important;
+            }
+            .text-purple {
+                color: #6f42c1 !important;
+            }
+        </style>
         <!-- Font Awesome -->
         <link
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"

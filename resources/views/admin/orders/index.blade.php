@@ -17,30 +17,46 @@
     <div class="card border-0 shadow-sm rounded-lg glass-card mb-4">
         <div class="card-body">
             <form action="{{ route('orders.index') }}" method="GET" class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <input type="text" name="search" class="form-control" placeholder="Search orders..." value="{{ request('search') }}">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select name="status" class="form-select">
                         <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>All Status</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                        <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready</option>
                         <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                         <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select name="payment_status" class="form-select">
-                        <option value="all" {{ request('payment_status') == 'all' ? 'selected' : '' }}>All Payment Status</option>
+                        <option value="all" {{ request('payment_status') == 'all' ? 'selected' : '' }}>All Payment</option>
                         <option value="pending" {{ request('payment_status') == 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>Paid</option>
                         <option value="failed" {{ request('payment_status') == 'failed' ? 'selected' : '' }}>Failed</option>
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <select name="per_page" class="form-select" onchange="this.form.submit()">
+                        <option value="5" {{ request('per_page', 10) == '5' ? 'selected' : '' }}>5 per page</option>
+                        <option value="10" {{ request('per_page', 10) == '10' ? 'selected' : '' }}>10 per page</option>
+                        <option value="15" {{ request('per_page', 10) == '15' ? 'selected' : '' }}>15 per page</option>
+                        <option value="25" {{ request('per_page', 10) == '25' ? 'selected' : '' }}>25 per page</option>
+                        <option value="50" {{ request('per_page', 10) == '50' ? 'selected' : '' }}>50 per page</option>
+                        <option value="100" {{ request('per_page', 10) == '100' ? 'selected' : '' }}>100 per page</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-search"></i>
                     </button>
+                </div>
+                <div class="col-md-1">
+                    <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </a>
                 </div>
             </form>
         </div>
@@ -78,10 +94,14 @@
                                     <span class="badge bg-warning text-dark">Pending</span>
                                 @elseif($order->status == 'processing')
                                     <span class="badge bg-info">Processing</span>
+                                @elseif($order->status == 'ready')
+                                    <span class="badge bg-purple">Ready</span>
                                 @elseif($order->status == 'completed')
                                     <span class="badge bg-success">Completed</span>
                                 @elseif($order->status == 'cancelled')
                                     <span class="badge bg-danger">Cancelled</span>
+                                @else
+                                    <span class="badge bg-secondary">{{ ucfirst($order->status) }}</span>
                                 @endif
                             </td>
                             <td>{{ $order->created_at->format('M d, Y') }}</td>
@@ -122,7 +142,7 @@
     @if($orders->hasPages())
         <div class="d-flex justify-content-center mt-4">
             <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm">
+                <ul class="pagination pagination-sm justify-content-center">
                     {{-- Previous Page Link --}}
                     @if ($orders->onFirstPage())
                         <li class="page-item disabled">
@@ -139,17 +159,19 @@
                     @endif
 
                     {{-- Pagination Elements --}}
-                    @foreach ($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
-                        @if ($page == $orders->currentPage())
-                            <li class="page-item active">
-                                <span class="page-link">{{ $page }}</span>
-                            </li>
-                        @else
-                            <li class="page-item">
-                                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                            </li>
-                        @endif
-                    @endforeach
+                    @if($orders->lastPage() > 1)
+                        @foreach ($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
+                            @if ($page == $orders->currentPage())
+                                <li class="page-item active">
+                                    <span class="page-link">{{ $page }}</span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                </li>
+                            @endif
+                        @endforeach
+                    @endif
 
                     {{-- Next Page Link --}}
                     @if ($orders->hasMorePages())

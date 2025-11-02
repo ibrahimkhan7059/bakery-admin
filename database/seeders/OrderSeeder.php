@@ -25,7 +25,7 @@ class OrderSeeder extends Seeder
             $selectedProducts = $products->random($numProducts);
             
             // Random status and payment status
-            $statuses = ['pending', 'processing', 'completed', 'cancelled'];
+            $statuses = ['pending', 'processing', 'ready', 'completed', 'cancelled'];
             $paymentStatuses = ['pending', 'paid', 'failed'];
             $priorities = [1, 2, 3]; // 1 = High, 2 = Medium, 3 = Low
             $paymentMethods = ['cash', 'gcash', 'bank_transfer'];

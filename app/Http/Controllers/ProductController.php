@@ -22,7 +22,20 @@ class ProductController extends Controller
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $products = $query->with('category')->oldest()->paginate(5);
+        // Get per_page from request, default to 5 if not provided
+        $perPage = $request->get('per_page', 5);
+        
+        // Validate per_page value (only allow specific values)
+        $allowedPerPage = [5, 10, 15, 25, 50, 100];
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 5;
+        }
+
+        $products = $query->with('category')->oldest()->paginate($perPage);
+        
+        // Append query parameters to pagination links
+        $products->appends($request->query());
+        
         return view('admin.products.index', compact('products'));
     }
 

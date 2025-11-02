@@ -34,6 +34,13 @@
         padding: 1rem 0.75rem;
         background-color: #f8f9fa;
     }
+    /* Hide default dropdown arrow */
+    .position-relative select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: none;
+    }
 </style>
 
 <div class="container-fluid">
@@ -130,16 +137,29 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <select name="status" class="form-select">
-                        <option value="">All Status</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
-                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                    </select>
+                    <div class="position-relative">
+                        <select name="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                        <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                    </div>
                 </div>
                 <div class="col-md-3">
-                    <input type="date" name="date" class="form-control" value="{{ request('date') }}" placeholder="Filter by date">
+                    <div class="position-relative">
+                        <select name="per_page" class="form-select" onchange="this.form.submit()">
+                            <option value="5" {{ request('per_page', 10) == '5' ? 'selected' : '' }}>5 per page</option>
+                            <option value="10" {{ request('per_page', 10) == '10' ? 'selected' : '' }}>10 per page</option>
+                            <option value="15" {{ request('per_page', 10) == '15' ? 'selected' : '' }}>15 per page</option>
+                            <option value="25" {{ request('per_page', 10) == '25' ? 'selected' : '' }}>25 per page</option>
+                            <option value="50" {{ request('per_page', 10) == '50' ? 'selected' : '' }}>50 per page</option>
+                            <option value="100" {{ request('per_page', 10) == '100' ? 'selected' : '' }}>100 per page</option>
+                        </select>
+                        <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                    </div>
                 </div>
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-primary w-100">
@@ -242,7 +262,7 @@
     <!-- Pagination -->
     @if($orders->hasPages())
     <div class="d-flex justify-content-center mt-4">
-        {{ $orders->links() }}
+        {{ $orders->appends(request()->query())->links() }}
     </div>
     @endif
 </div>

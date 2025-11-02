@@ -124,45 +124,61 @@
                     <input type="text" class="form-control" name="search" placeholder="Search orders..." value="{{ request('search') }}">
                 </div>
                 <div class="col-md-2">
-                    <select class="form-control" name="status">
-                        <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>All Status</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
-                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                    </select>
+                    <div class="position-relative">
+                        <select class="form-control" name="status">
+                            <option value="all" {{ request('status') == 'all' ? 'selected' : '' }}>All Status</option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                        <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                    </div>
                 </div>
                 <div class="col-md-2">
-                    <select class="form-control" name="order_type">
-                        <option value="all" {{ request('order_type') == 'all' ? 'selected' : '' }}>All Types</option>
-                        <option value="birthday" {{ request('order_type') == 'birthday' ? 'selected' : '' }}>Birthday</option>
-                        <option value="party" {{ request('order_type') == 'party' ? 'selected' : '' }}>Party</option>
-                        <option value="corporate" {{ request('order_type') == 'corporate' ? 'selected' : '' }}>Corporate</option>
-                        <option value="other" {{ request('order_type') == 'other' ? 'selected' : '' }}>Other</option>
-                    </select>
+                    <div class="position-relative">
+                        <select class="form-control" name="order_type">
+                            <option value="all" {{ request('order_type') == 'all' ? 'selected' : '' }}>All Types</option>
+                            <option value="birthday" {{ request('order_type') == 'birthday' ? 'selected' : '' }}>Birthday</option>
+                            <option value="party" {{ request('order_type') == 'party' ? 'selected' : '' }}>Party</option>
+                            <option value="corporate" {{ request('order_type') == 'corporate' ? 'selected' : '' }}>Corporate</option>
+                            <option value="other" {{ request('order_type') == 'other' ? 'selected' : '' }}>Other</option>
+                        </select>
+                        <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                    </div>
                 </div>
                 <div class="col-md-2">
-                    <select class="form-control" name="payment_status">
-                        <option value="all" {{ request('payment_status') == 'all' ? 'selected' : '' }}>All Payments</option>
-                        <option value="pending" {{ request('payment_status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="partial" {{ request('payment_status') == 'partial' ? 'selected' : '' }}>Partial</option>
-                        <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>Paid</option>
-                    </select>
+                    <div class="position-relative">
+                        <select class="form-control" name="payment_status">
+                            <option value="all" {{ request('payment_status') == 'all' ? 'selected' : '' }}>All Payments</option>
+                            <option value="pending" {{ request('payment_status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="partial" {{ request('payment_status') == 'partial' ? 'selected' : '' }}>Partial</option>
+                            <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>Paid</option>
+                        </select>
+                        <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="input-group">
-                        <input type="date" class="form-control" name="start_date" value="{{ request('start_date') }}" placeholder="Start Date">
-                        <input type="date" class="form-control" name="end_date" value="{{ request('end_date') }}" placeholder="End Date">
+                <div class="col-md-2">
+                    <div class="position-relative">
+                        <select name="per_page" class="form-control" onchange="this.form.submit()">
+                            <option value="5" {{ request('per_page', 10) == '5' ? 'selected' : '' }}>5 per page</option>
+                            <option value="10" {{ request('per_page', 10) == '10' ? 'selected' : '' }}>10 per page</option>
+                            <option value="15" {{ request('per_page', 10) == '15' ? 'selected' : '' }}>15 per page</option>
+                            <option value="25" {{ request('per_page', 10) == '25' ? 'selected' : '' }}>25 per page</option>
+                            <option value="50" {{ request('per_page', 10) == '50' ? 'selected' : '' }}>50 per page</option>
+                            <option value="100" {{ request('per_page', 10) == '100' ? 'selected' : '' }}>100 per page</option>
+                        </select>
+                        <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
                     </div>
                 </div>
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search"></i> Search
                     </button>
-<a href="{{ route('bulk-orders.index') }}" class="btn btn-secondary reset-btn">
-    <i class="fas fa-sync"></i> Reset
-</a>
+                    <a href="{{ route('bulk-orders.index') }}" class="btn btn-secondary reset-btn">
+                        <i class="fas fa-sync"></i> Reset
+                    </a>
                 </div>
             </form>
         </div>
@@ -255,9 +271,58 @@
             </div>
 
             <!-- Pagination -->
-            <div class="d-flex justify-content-center mt-4">
-                {{ $orders->links() }}
-            </div>
+            @if($orders->hasPages())
+                <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm justify-content-center">
+                            {{-- Previous Page Link --}}
+                            @if ($orders->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $orders->previousPageUrl() }}" rel="prev">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            @endif
+
+                            {{-- Pagination Elements --}}
+                            @if($orders->lastPage() > 1)
+                                @foreach ($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
+                                    @if ($page == $orders->currentPage())
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ $page }}</span>
+                                        </li>
+                                    @else
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                        </li>
+                                    @endif
+                                @endforeach
+                            @endif
+
+                            {{-- Next Page Link --}}
+                            @if ($orders->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $orders->nextPageUrl() }}" rel="next">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
+                </div>
+            @endif
         </div>
     </div>
 </div>

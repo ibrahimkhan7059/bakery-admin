@@ -7,9 +7,17 @@ use App\Models\User;
 use App\Http\Requests\CustomCakeOrderRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\NotificationMessageService;
 
 class CustomCakeOrderController extends Controller
 {
+    private $notificationService;
+
+    public function __construct(NotificationMessageService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -33,21 +41,23 @@ class CustomCakeOrderController extends Controller
             });
         }
 
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('created_at', [$request->start_date, $request->end_date]);
+        // Get per_page from request, default to 10 if not provided
+        $perPage = $request->get('per_page', 10);
+        
+        // Validate per_page to ensure it's a reasonable number
+        if (!in_array($perPage, [5, 10, 15, 25, 50, 100])) {
+            $perPage = 10;
         }
 
         // Get order statistics
         $stats = [
             'total' => CustomCakeOrder::count(),
             'pending' => CustomCakeOrder::where('status', 'pending')->count(),
-            'confirmed' => CustomCakeOrder::where('status', 'confirmed')->count(),
-            'in_progress' => CustomCakeOrder::where('status', 'in_progress')->count(),
             'completed' => CustomCakeOrder::where('status', 'completed')->count(),
-            'cancelled' => CustomCakeOrder::where('status', 'cancelled')->count(),
+            'today' => CustomCakeOrder::whereDate('created_at', today())->count(),
         ];
 
-        $orders = $query->with('user')->latest()->paginate(10);
+        $orders = $query->with('user')->latest()->paginate($perPage);
         
         return view('admin.custom-cake-orders.index', compact('orders', 'stats'));
     }
@@ -79,12 +89,52 @@ class CustomCakeOrderController extends Controller
      */
     public function store(CustomCakeOrderRequest $request)
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
+            
+            // Handle reference image upload if provided
+            if ($request->hasFile('reference_image')) {
+                $image = $request->file('reference_image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->move(public_path('storage/custom-cake-images'), $imageName);
+                $validated['reference_image'] = 'custom-cake-images/' . $imageName;
+            }
 
-        CustomCakeOrder::create($validated);
+            $customCakeOrder = CustomCakeOrder::create($validated);
 
-        return redirect()->route('custom-cake-orders.index')
-            ->with('success', 'Custom cake order created successfully!');
+            // Send notifications for new custom cake request
+            try {
+                // Send confirmation to customer
+                $this->notificationService->sendCustomCakeReceived(
+                    $customCakeOrder->user_id, 
+                    $customCakeOrder->id
+                );
+                
+                // Send alert to admin users
+                $adminUsers = User::where('role', 'admin')->get();
+                foreach ($adminUsers as $admin) {
+                    $this->notificationService->sendCustomCakeAlert(
+                        $admin->id,
+                        $customCakeOrder->id,
+                        $customCakeOrder->user->name ?? 'Customer'
+                    );
+                }
+                
+                $message = 'Custom cake order created successfully and notifications sent!';
+            } catch (\Exception $e) {
+                \Log::error("Failed to send custom cake notifications for order {$customCakeOrder->id}: " . $e->getMessage());
+                $message = 'Custom cake order created successfully but notifications failed to send.';
+            }
+
+            return redirect()->route('custom-cake-orders.index')
+                ->with('success', $message);
+                
+        } catch (\Exception $e) {
+            \Log::error("Failed to create custom cake order: " . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to create custom cake order. Please try again.');
+        }
     }
 
     /**
@@ -148,12 +198,89 @@ class CustomCakeOrderController extends Controller
     {
         $validated = $request->validate([
             'status' => 'required|in:pending,confirmed,in_progress,completed,cancelled',
+            'admin_message' => 'sometimes|string|max:500',
+            'quoted_price' => 'sometimes|numeric|min:0'
         ]);
 
-        $customCakeOrder->update(['status' => $validated['status']]);
+        $oldStatus = $customCakeOrder->status;
+        $newStatus = $validated['status'];
+        
+        // Prepare update data - only include fields that are provided  
+        $updateData = ['status' => $newStatus];
+        
+        if ($request->filled('admin_message')) {
+            $updateData['admin_message'] = $request->admin_message;
+        }
+        
+        if ($request->filled('quoted_price')) {
+            $updateData['quoted_price'] = $request->quoted_price;
+        }
+        
+        // Update custom cake order
+        $customCakeOrder->update($updateData);
+
+        // Send appropriate notification based on status
+        try {
+            switch ($newStatus) {
+                case 'pending':
+                    // Custom cake request received
+                    $this->notificationService->sendCustomCakeReceived(
+                        $customCakeOrder->user_id, 
+                        $customCakeOrder->id
+                    );
+                    break;
+
+                case 'confirmed':
+                    // Design approved
+                    $this->notificationService->sendCustomCakeDesignUpdate(
+                        $customCakeOrder->user_id, 
+                        $customCakeOrder->id, 
+                        'approved',
+                        $request->admin_message
+                    );
+                    break;
+
+                case 'in_progress':
+                    // Quote ready with price
+                    if ($request->quoted_price) {
+                        $this->notificationService->sendCustomCakeQuote(
+                            $customCakeOrder->user_id, 
+                            $customCakeOrder->id, 
+                            $request->quoted_price
+                        );
+                    }
+                    break;
+
+                case 'completed':
+                    // Custom cake completed - use existing method format
+                    $this->notificationService->sendCustomCakeDesignUpdate(
+                        $customCakeOrder->user_id, 
+                        $customCakeOrder->id, 
+                        'completed',
+                        'Your custom cake is ready for pickup! Thank you for choosing BakeHub.'
+                    );
+                    break;
+
+                case 'cancelled':
+                    // Custom cake cancelled
+                    $this->notificationService->sendCustomCakeDesignUpdate(
+                        $customCakeOrder->user_id, 
+                        $customCakeOrder->id, 
+                        'cancelled',
+                        $request->admin_message ?: 'Custom cake order cancelled'
+                    );
+                    break;
+            }
+
+            $notificationMessage = 'Custom cake status updated and customer notified successfully!';
+            
+        } catch (\Exception $e) {
+            \Log::error("Failed to send custom cake notification for order {$customCakeOrder->id}: " . $e->getMessage());
+            $notificationMessage = 'Custom cake status updated but notification failed to send.';
+        }
 
         return redirect()->back()
-            ->with('success', 'Order status updated successfully!');
+            ->with('success', $notificationMessage);
     }
 
     /**

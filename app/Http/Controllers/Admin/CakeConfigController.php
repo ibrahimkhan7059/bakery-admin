@@ -50,10 +50,21 @@ class CakeConfigController extends Controller
 			'name' => 'required|string',
 			'price' => 'required|numeric|min:0',
 		]);
+		
 		$group = CakeOptionGroup::firstOrCreate(
 			['key' => $validated['group_key']],
 			['label' => ucfirst($validated['group_key'])]
 		);
+		
+		// Check if option already exists in this group
+		$existingOption = CakeOption::where('cake_option_group_id', $group->id)
+			->where('name', $validated['name'])
+			->first();
+			
+		if ($existingOption) {
+			return back()->withErrors(['name' => 'Option "' . $validated['name'] . '" already exists in ' . $group->label . ' group.']);
+		}
+		
 		CakeOption::create([
 			'cake_option_group_id' => $group->id,
 			'name' => $validated['name'],
@@ -68,6 +79,17 @@ class CakeConfigController extends Controller
 			'name' => 'required|string',
 			'price' => 'required|numeric|min:0',
 		]);
+		
+		// Check if another option with same name exists in the same group (excluding current option)
+		$existingOption = CakeOption::where('cake_option_group_id', $cakeOption->cake_option_group_id)
+			->where('name', $validated['name'])
+			->where('id', '!=', $cakeOption->id)
+			->first();
+			
+		if ($existingOption) {
+			return back()->withErrors(['name' => 'Option "' . $validated['name'] . '" already exists in this group.']);
+		}
+		
 		$cakeOption->update($validated);
 		return back()->with('success','Option updated');
 	}

@@ -13,7 +13,7 @@
             <a href="{{ route('custom-cake-orders.edit', $customCakeOrder) }}" class="btn btn-primary hover-lift me-2">
                 <i class="bi bi-pencil me-1"></i> Edit Order
             </a>
-            <a href="{{ route('custom-cake-orders.index') }}" class="btn btn-secondary hover-lift">
+            <a href="{{ route('custom-cake-orders.index') }}" class="btn btn-primary hover-lift">
                 <i class="bi bi-arrow-left me-1"></i> Back to Orders
             </a>
         </div>

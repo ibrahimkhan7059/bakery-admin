@@ -6,9 +6,17 @@ use App\Models\BulkOrder;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\NotificationMessageService;
 
 class BulkOrderController extends Controller
 {
+    private $notificationService;
+
+    public function __construct(NotificationMessageService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     public function index(Request $request)
     {
         $query = BulkOrder::query();
@@ -34,8 +42,13 @@ class BulkOrderController extends Controller
             });
         }
 
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('delivery_date', [$request->start_date, $request->end_date]);
+        // Get per_page from request, default to 10 if not provided
+        $perPage = $request->get('per_page', 10);
+        
+        // Validate per_page value (only allow specific values)
+        $allowedPerPage = [5, 10, 15, 25, 50, 100];
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 10;
         }
 
         // Get statistics
@@ -48,7 +61,10 @@ class BulkOrderController extends Controller
             'cancelled' => BulkOrder::where('status', 'cancelled')->count(),
         ];
 
-        $orders = $query->with(['items', 'user'])->latest()->paginate(10);
+        $orders = $query->with(['items', 'user'])->latest()->paginate($perPage);
+        
+        // Append query parameters to pagination links
+        $orders->appends($request->query());
         
         return view('admin.bulk-orders.index', compact('orders', 'stats'));
     }
@@ -373,20 +389,120 @@ class BulkOrderController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:pending,confirmed,processing,completed,cancelled'
+            'status' => 'required|in:pending,confirmed,processing,completed,cancelled',
+            'total_price' => 'sometimes|numeric|min:0',
+            'delivery_date' => 'sometimes|date|after:today'
         ]);
 
-        $bulkOrder->update(['status' => $request->status]);
+        $newStatus = $request->status;
+        
+        // Prepare update data - only include fields that are provided
+        $updateData = ['status' => $newStatus];
+        
+        if ($request->filled('total_price')) {
+            $updateData['total_amount'] = $request->total_price;
+        }
+        
+        if ($request->filled('delivery_date')) {
+            $updateData['delivery_date'] = $request->delivery_date;
+        }
+        
+        // Update bulk order
+        $bulkOrder->update($updateData);
+
+        // Send appropriate notification based on status
+        try {
+            // Get the correct user_id (either from order or find by email)
+            $userId = $bulkOrder->user_id;
+            
+            // If user_id is null or admin (1), try to find user by email
+            if (!$userId || $userId == 1) {
+                if ($bulkOrder->customer_email) {
+                    $user = \App\Models\User::where('email', $bulkOrder->customer_email)->first();
+                    if ($user) {
+                        $userId = $user->id;
+                        // Update the bulk order with correct user_id for future
+                        $bulkOrder->update(['user_id' => $userId]);
+                        \Log::info("Updated bulk order {$bulkOrder->id} user_id from {$bulkOrder->user_id} to {$userId}");
+                    }
+                }
+            }
+            
+            if (!$userId) {
+                \Log::warning("No valid user_id found for bulk order {$bulkOrder->id}, cannot send notification");
+                $notificationMessage = 'Bulk order status updated but no valid user found for notification.';
+            } else {
+                switch ($newStatus) {
+                    case 'pending':
+                        // Bulk order received
+                        $this->notificationService->sendBulkOrderReceived(
+                            $userId, 
+                            $bulkOrder->id
+                        );
+                        break;
+
+                    case 'confirmed':
+                        // Bulk order quote ready
+                        if ($request->total_price && $request->delivery_date) {
+                            $this->notificationService->sendBulkOrderQuote(
+                                $userId, 
+                                $bulkOrder->id, 
+                                $request->total_price, 
+                                $request->delivery_date
+                            );
+                        }
+                        break;
+
+                    case 'processing':
+                        // Bulk order is being prepared - use simple method call
+                        $this->notificationService->sendBulkOrderUpdate(
+                            $userId, 
+                            $bulkOrder->id, 
+                            'processing',
+                            'Great news! Your bulk order is now being prepared by our team.'
+                        );
+                        break;
+
+                    case 'completed':
+                        // Bulk order completed
+                        $this->notificationService->sendBulkOrderUpdate(
+                            $userId, 
+                            $bulkOrder->id, 
+                            'completed',
+                            'Your bulk order has been completed successfully! Thank you for your business.'
+                        );
+                        break;
+
+                    case 'cancelled':
+                        // Bulk order cancelled
+                        $this->notificationService->sendBulkOrderUpdate(
+                            $userId, 
+                            $bulkOrder->id, 
+                            'cancelled',
+                            'We\'re sorry! Your bulk order has been cancelled. Please contact us for details.'
+                        );
+                        break;
+                }
+                
+                $notificationMessage = 'Bulk order status updated and customer notified successfully.';
+            }
+
+            $notificationMessage = 'Bulk order status updated and customer notified successfully.';
+            
+        } catch (\Exception $e) {
+            \Log::error("Failed to send bulk order notification for order {$bulkOrder->id}: " . $e->getMessage());
+            $notificationMessage = 'Bulk order status updated but notification failed to send.';
+        }
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Bulk order status updated successfully.',
+                'message' => $notificationMessage,
                 'status' => $bulkOrder->formatted_status
             ]);
         }
 
-        return redirect()->back()->with('success', 'Bulk order status updated successfully.');
+        return redirect()->back()->with('success', $notificationMessage);
     }
 
     /**

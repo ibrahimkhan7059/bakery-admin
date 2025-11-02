@@ -51,7 +51,16 @@ return [
     |
     */
 
-    'ai_api_url' => env('AI_API_URL', 'http://192.168.100.81:5000'),
+        /*
+    |--------------------------------------------------------------------------
+    | AI API Configuration
+    |--------------------------------------------------------------------------
+    |
+    | URL for the Python AI service that handles cake image predictions.
+    | This should be the network IP address where your Python AI server is running.
+    |
+    */
+    'ai_api_url' => env('AI_API_URL', 'http://10.130.8.2:5000'),
 
     /*
     |--------------------------------------------------------------------------

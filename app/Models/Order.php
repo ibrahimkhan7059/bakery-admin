@@ -77,6 +77,11 @@ class Order extends Model
         return $query->where('status', 'processing');
     }
 
+    public function scopeReady(Builder $query)
+    {
+        return $query->where('status', 'ready');
+    }
+
     public function scopeCompleted(Builder $query)
     {
         return $query->where('status', 'completed');
@@ -111,6 +116,7 @@ class Order extends Model
         $statuses = [
             'pending' => '🔴 Pending',
             'processing' => '🔵 Processing',
+            'ready' => '🟣 Ready',
             'completed' => '✅ Completed',
             'cancelled' => '❌ Cancelled',
         ];

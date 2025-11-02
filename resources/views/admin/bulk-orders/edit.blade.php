@@ -9,7 +9,7 @@
     <div></div>
        
         <div>
-            <a href="{{ route('bulk-orders.show', $bulkOrder) }}" class="btn btn-secondary">
+            <a href="{{ route('bulk-orders.show', $bulkOrder) }}" class="btn btn-primary">
                 <i class="fas fa-arrow-left"></i> Back to Details
             </a>
         </div>
@@ -106,14 +106,17 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="order_type">Order Type <span class="text-danger">*</span></label>
-                            <select class="form-control @error('order_type') is-invalid @enderror" 
-                                id="order_type" name="order_type" required>
-                                <option value="">Select Type</option>
-                                <option value="birthday" {{ old('order_type', $bulkOrder->order_type) == 'birthday' ? 'selected' : '' }}>Birthday</option>
-                                <option value="party" {{ old('order_type', $bulkOrder->order_type) == 'party' ? 'selected' : '' }}>Party</option>
-                                <option value="corporate" {{ old('order_type', $bulkOrder->order_type) == 'corporate' ? 'selected' : '' }}>Corporate</option>
-                                <option value="other" {{ old('order_type', $bulkOrder->order_type) == 'other' ? 'selected' : '' }}>Other</option>
-                            </select>
+                            <div class="position-relative">
+                                <select class="form-control @error('order_type') is-invalid @enderror" 
+                                    id="order_type" name="order_type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="birthday" {{ old('order_type', $bulkOrder->order_type) == 'birthday' ? 'selected' : '' }}>Birthday</option>
+                                    <option value="party" {{ old('order_type', $bulkOrder->order_type) == 'party' ? 'selected' : '' }}>Party</option>
+                                    <option value="corporate" {{ old('order_type', $bulkOrder->order_type) == 'corporate' ? 'selected' : '' }}>Corporate</option>
+                                    <option value="other" {{ old('order_type', $bulkOrder->order_type) == 'other' ? 'selected' : '' }}>Other</option>
+                                </select>
+                                <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                            </div>
                             @error('order_type')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -139,12 +142,15 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="payment_method">Payment Method <span class="text-danger">*</span></label>
-                            <select class="form-control @error('payment_method') is-invalid @enderror" 
-                                id="payment_method" name="payment_method" required>
-                                <option value="">Select Method</option>
-                                <option value="cash" {{ old('payment_method', $bulkOrder->payment_method) == 'cash' ? 'selected' : '' }}>Cash on Delivery</option>
-                                <option value="online" {{ old('payment_method', $bulkOrder->payment_method) == 'online' ? 'selected' : '' }}>Online Payment (PayFast)</option>
-                            </select>
+                            <div class="position-relative">
+                                <select class="form-control @error('payment_method') is-invalid @enderror" 
+                                    id="payment_method" name="payment_method" required>
+                                    <option value="">Select Method</option>
+                                    <option value="cash" {{ old('payment_method', $bulkOrder->payment_method) == 'cash' ? 'selected' : '' }}>Cash on Delivery</option>
+                                    <option value="online" {{ old('payment_method', $bulkOrder->payment_method) == 'online' ? 'selected' : '' }}>Online Payment (PayFast)</option>
+                                </select>
+                                <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                            </div>
                             @error('payment_method')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -163,12 +169,15 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="payment_status">Payment Status <span class="text-danger">*</span></label>
-                            <select class="form-control @error('payment_status') is-invalid @enderror" 
-                                id="payment_status" name="payment_status" required>
-                                <option value="pending" {{ old('payment_status', $bulkOrder->payment_status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="partial" {{ old('payment_status', $bulkOrder->payment_status) == 'partial' ? 'selected' : '' }}>Partial</option>
-                                <option value="paid" {{ old('payment_status', $bulkOrder->payment_status) == 'paid' ? 'selected' : '' }}>Paid</option>
-                            </select>
+                            <div class="position-relative">
+                                <select class="form-control @error('payment_status') is-invalid @enderror" 
+                                    id="payment_status" name="payment_status" required>
+                                    <option value="pending" {{ old('payment_status', $bulkOrder->payment_status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="partial" {{ old('payment_status', $bulkOrder->payment_status) == 'partial' ? 'selected' : '' }}>Partial</option>
+                                    <option value="paid" {{ old('payment_status', $bulkOrder->payment_status) == 'paid' ? 'selected' : '' }}>Paid</option>
+                                </select>
+                                <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                            </div>
                             @error('payment_status')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -187,17 +196,20 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label>Product <span class="text-danger">*</span></label>
-                                            <select class="form-control product-select" name="products[{{ $index }}][id]" required>
-                                                <option value="">Select Product</option>
-                                                @foreach($products as $product)
-                                                    <option value="{{ $product->id }}" 
-                                                        data-price="{{ $product->price }}"
-                                                        data-stock="{{ $product->stock }}"
-                                                        {{ old("products.{$index}.id", $item->product_id) == $product->id ? 'selected' : '' }}>
-                                                        {{ $product->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
+                                            <div class="position-relative">
+                                                <select class="form-control product-select" name="products[{{ $index }}][id]" required>
+                                                    <option value="">Select Product</option>
+                                                    @foreach($products as $product)
+                                                        <option value="{{ $product->id }}" 
+                                                            data-price="{{ $product->price }}"
+                                                            data-stock="{{ $product->stock }}"
+                                                            {{ old("products.{$index}.id", $item->product_id) == $product->id ? 'selected' : '' }}>
+                                                            {{ $product->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-2">

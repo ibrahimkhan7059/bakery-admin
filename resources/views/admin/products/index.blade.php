@@ -7,11 +7,8 @@
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
         <div></div>
         <div class="btn-toolbar mb-2 mb-md-0">
-            <a href="{{ route('products.create') }}" class="btn btn-primary hover-lift me-2">
+            <a href="{{ route('products.create') }}" class="btn btn-primary hover-lift">
                 <i class="bi bi-plus-lg me-1"></i> Add Product
-            </a>
-            <a href="{{ route('products.export.cake-images') }}" class="btn btn-outline-primary hover-lift">
-                <i class="bi bi-download me-1"></i> Export Cake Images CSV
             </a>
         </div>
     </div>
@@ -27,6 +24,21 @@
                             <i class="bi bi-search"></i> Search
                         </button>
                     </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="per_page" class="form-select" onchange="this.form.submit()">
+                        <option value="5" {{ request('per_page', 5) == '5' ? 'selected' : '' }}>5 per page</option>
+                        <option value="10" {{ request('per_page', 5) == '10' ? 'selected' : '' }}>10 per page</option>
+                        <option value="15" {{ request('per_page', 5) == '15' ? 'selected' : '' }}>15 per page</option>
+                        <option value="25" {{ request('per_page', 5) == '25' ? 'selected' : '' }}>25 per page</option>
+                        <option value="50" {{ request('per_page', 5) == '50' ? 'selected' : '' }}>50 per page</option>
+                        <option value="100" {{ request('per_page', 5) == '100' ? 'selected' : '' }}>100 per page</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise"></i> Reset
+                    </a>
                 </div>
             </form>
         </div>
@@ -97,7 +109,7 @@
     @if($products->hasPages())
         <div class="d-flex justify-content-center mt-4">
             <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm">
+                <ul class="pagination pagination-sm justify-content-center">
                     {{-- Previous Page Link --}}
                     @if ($products->onFirstPage())
                         <li class="page-item disabled">
@@ -114,17 +126,19 @@
                     @endif
 
                     {{-- Pagination Elements --}}
-                    @foreach ($products->getUrlRange(1, $products->lastPage()) as $page => $url)
-                        @if ($page == $products->currentPage())
-                            <li class="page-item active">
-                                <span class="page-link">{{ $page }}</span>
-                            </li>
-                        @else
-                            <li class="page-item">
-                                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                            </li>
-                        @endif
-                    @endforeach
+                    @if($products->lastPage() > 1)
+                        @foreach ($products->getUrlRange(1, $products->lastPage()) as $page => $url)
+                            @if ($page == $products->currentPage())
+                                <li class="page-item active">
+                                    <span class="page-link">{{ $page }}</span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                </li>
+                            @endif
+                        @endforeach
+                    @endif
 
                     {{-- Next Page Link --}}
                     @if ($products->hasMorePages())

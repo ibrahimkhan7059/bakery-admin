@@ -104,14 +104,17 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="order_type">Order Type <span class="text-danger">*</span></label>
-                            <select class="form-control @error('order_type') is-invalid @enderror" 
-                                id="order_type" name="order_type" required>
-                                <option value="">Select Type</option>
-                                <option value="birthday" {{ old('order_type') == 'birthday' ? 'selected' : '' }}>Birthday</option>
-                                <option value="party" {{ old('order_type') == 'party' ? 'selected' : '' }}>Party</option>
-                                <option value="corporate" {{ old('order_type') == 'corporate' ? 'selected' : '' }}>Corporate</option>
-                                <option value="other" {{ old('order_type') == 'other' ? 'selected' : '' }}>Other</option>
-                            </select>
+                            <div class="position-relative">
+                                <select class="form-control @error('order_type') is-invalid @enderror" 
+                                    id="order_type" name="order_type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="birthday" {{ old('order_type') == 'birthday' ? 'selected' : '' }}>Birthday</option>
+                                    <option value="party" {{ old('order_type') == 'party' ? 'selected' : '' }}>Party</option>
+                                    <option value="corporate" {{ old('order_type') == 'corporate' ? 'selected' : '' }}>Corporate</option>
+                                    <option value="other" {{ old('order_type') == 'other' ? 'selected' : '' }}>Other</option>
+                                </select>
+                                <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                            </div>
                             @error('order_type')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -137,12 +140,15 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="payment_method">Payment Method <span class="text-danger">*</span></label>
-                            <select class="form-control @error('payment_method') is-invalid @enderror" 
-                                id="payment_method" name="payment_method" required>
-                                <option value="">Select Method</option>
-                                <option value="cash" {{ old('payment_method') == 'cash' ? 'selected' : '' }}>Cash on Delivery</option>
-                                <option value="online" {{ old('payment_method') == 'online' ? 'selected' : '' }}>Online Payment (PayFast)</option>
-                            </select>
+                            <div class="position-relative">
+                                <select class="form-control @error('payment_method') is-invalid @enderror" 
+                                    id="payment_method" name="payment_method" required>
+                                    <option value="">Select Method</option>
+                                    <option value="cash" {{ old('payment_method') == 'cash' ? 'selected' : '' }}>Cash on Delivery</option>
+                                    <option value="online" {{ old('payment_method') == 'online' ? 'selected' : '' }}>Online Payment (PayFast)</option>
+                                </select>
+                                <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                            </div>
                             @error('payment_method')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -170,16 +176,19 @@
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label>Product <span class="text-danger">*</span></label>
-                                            <select class="form-control product-select" name="products[0][id]" required>
-                                                <option value="">Select Product</option>
-                                                @foreach($products as $product)
-                                                    <option value="{{ $product->id }}" 
-                                                        data-price="{{ $product->price }}"
-                                                        data-stock="{{ $product->stock }}">
-                                                        {{ $product->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
+                                            <div class="position-relative">
+                                                <select class="form-control product-select" name="products[0][id]" required>
+                                                    <option value="">Select Product</option>
+                                                    @foreach($products as $product)
+                                                        <option value="{{ $product->id }}" 
+                                                            data-price="{{ $product->price }}"
+                                                            data-stock="{{ $product->stock }}">
+                                                            {{ $product->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-2">

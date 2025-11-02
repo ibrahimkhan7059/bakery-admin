@@ -36,6 +36,7 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth'])->prefix('admin')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartData'])->name('admin.dashboard.chart-data');
 
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -123,6 +124,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
 // ✅ Laravel Breeze Auth Routes
 require __DIR__.'/auth.php';
+
+// ✅ Admin Notification Routes
+require __DIR__.'/admin_notifications.php';
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

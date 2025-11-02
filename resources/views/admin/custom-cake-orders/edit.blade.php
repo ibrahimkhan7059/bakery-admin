@@ -3,6 +3,15 @@
 @section('title', 'Edit Custom Cake Order')
 
 @section('content')
+<style>
+    /* Hide default dropdown arrow */
+    .position-relative select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: none;
+    }
+</style>
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
@@ -270,7 +279,7 @@
 
                 <!-- Form Navigation -->
                 <div class="d-flex justify-content-between mt-4">
-                    <button type="button" class="btn btn-secondary d-none" id="prevBtn" onclick="prevStep()">
+                    <button type="button" class="btn btn-primary d-none" id="prevBtn" onclick="prevStep()">
                         <i class="bi bi-arrow-left me-1"></i> Previous
                     </button>
                     <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextStep()">

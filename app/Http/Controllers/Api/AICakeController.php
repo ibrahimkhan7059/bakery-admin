@@ -18,18 +18,40 @@ class AICakeController extends Controller
      */
     public function predictCake(Request $request): JsonResponse
     {
+        Log::info('🔵 AI predictCake method called', [
+            'request_method' => $request->method(),
+            'request_url' => $request->fullUrl(),
+            'request_ip' => $request->ip(),
+            'has_image' => $request->hasFile('image'),
+            'content_type' => $request->header('Content-Type'),
+            'user_agent' => $request->header('User-Agent')
+        ]);
+
         try {
             // Validate request
             $request->validate([
                 'image' => 'required|image|mimes:jpeg,png,jpg|max:10240', // 10MB max
             ]);
 
+            Log::info('✅ AI request validation passed');
+
             // Get the uploaded image
             $image = $request->file('image');
+            
+            Log::info('📁 Image file details', [
+                'original_name' => $image->getClientOriginalName(),
+                'size' => $image->getSize(),
+                'mime_type' => $image->getMimeType()
+            ]);
             
             // Save image temporarily
             $tempPath = $image->store('temp/ai-uploads', 'public');
             $fullPath = Storage::disk('public')->path($tempPath);
+
+            Log::info('💾 Image saved', [
+                'temp_path' => $tempPath,
+                'full_path' => $fullPath
+            ]);
 
             // Call Python AI API
             $response = $this->callAIApi($fullPath);
@@ -76,7 +98,12 @@ class AICakeController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('AI Cake Prediction Error: ' . $e->getMessage());
+            Log::error('❌ AI Cake Prediction Exception', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return response()->json([
                 'success' => false,
@@ -92,16 +119,36 @@ class AICakeController extends Controller
     private function callAIApi(string $imagePath): array
     {
         try {
+            $aiApiUrl = config('app.ai_api_url', 'http://10.130.8.2:5000') . '/predict_cake';
+            
+            Log::info('🔗 Calling AI API', [
+                'ai_api_url' => $aiApiUrl,
+                'image_path' => $imagePath,
+                'file_exists' => file_exists($imagePath)
+            ]);
+
             // Prepare the request to Python API
             $response = Http::timeout(60)->attach(
                 'image',
                 file_get_contents($imagePath),
                 basename($imagePath)
-            )->post(config('app.ai_api_url', 'http://192.168.100.81:5000') . '/predict_cake');
+            )->post($aiApiUrl);
+
+            Log::info('📡 AI API Response', [
+                'status' => $response->status(),
+                'successful' => $response->successful(),
+                'body_preview' => substr($response->body(), 0, 200)
+            ]);
 
             if ($response->successful()) {
+                Log::info('✅ AI API call successful');
                 return $response->json();
             }
+
+            Log::error('❌ AI API call failed', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
 
             return [
                 'success' => false,
@@ -110,7 +157,10 @@ class AICakeController extends Controller
             ];
 
         } catch (\Exception $e) {
-            Log::error('AI API Call Error: ' . $e->getMessage());
+            Log::error('❌ AI API Call Exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return [
                 'success' => false,
@@ -421,7 +471,7 @@ class AICakeController extends Controller
     {
         try {
             $response = Http::timeout(10)->get(
-                config('app.ai_api_url', 'http://192.168.100.81:5000') . '/health'
+                config('app.ai_api_url', 'http://10.130.8.2:5000') . '/health'
             );
 
             if ($response->successful()) {
