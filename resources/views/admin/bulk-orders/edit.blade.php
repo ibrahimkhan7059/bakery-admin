@@ -168,6 +168,25 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
+                            <label for="status">Order Status <span class="text-danger">*</span></label>
+                            <div class="position-relative">
+                                <select class="form-control @error('status') is-invalid @enderror" 
+                                    id="status" name="status" required>
+                                    <option value="pending" {{ old('status', $bulkOrder->status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="processing" {{ old('status', $bulkOrder->status) == 'processing' ? 'selected' : '' }}>Processing</option>
+                                    <option value="ready" {{ old('status', $bulkOrder->status) == 'ready' ? 'selected' : '' }}>Ready</option>
+                                    <option value="completed" {{ old('status', $bulkOrder->status) == 'completed' ? 'selected' : '' }}>Completed</option>
+                                    <option value="cancelled" {{ old('status', $bulkOrder->status) == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                </select>
+                                <i class="fas fa-chevron-down position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d;"></i>
+                            </div>
+                            @error('status')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
                             <label for="payment_status">Payment Status <span class="text-danger">*</span></label>
                             <div class="position-relative">
                                 <select class="form-control @error('payment_status') is-invalid @enderror" 

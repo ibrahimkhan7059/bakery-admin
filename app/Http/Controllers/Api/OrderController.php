@@ -276,4 +276,40 @@ class OrderController extends Controller
 
         return response()->json($order->load('items.product'));
     }
-} 
+
+    public function markAsCompleted(Request $request, Order $order)
+    {
+        try {
+            // Check if the order belongs to the authenticated user
+            if ($order->user_id !== $request->user()->id) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+
+            // Check if the order is in 'ready' status
+            if ($order->status !== 'ready') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order must be in ready status to be marked as completed'
+                ], 400);
+            }
+
+            // Update the order status to completed
+            $order->update([
+                'status' => 'completed'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order marked as completed successfully',
+                'order' => $order->fresh()
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error marking order as completed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to mark order as completed'
+            ], 500);
+        }
+    }
+}

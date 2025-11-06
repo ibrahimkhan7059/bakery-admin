@@ -217,6 +217,7 @@ class BulkOrderController extends Controller
             'event_details' => 'nullable|string|max:1000',
             'payment_method' => 'required|in:cash,online',
             'advance_payment' => 'nullable|numeric|min:0',
+            'status' => 'required|in:pending,processing,ready,completed,cancelled',
             'payment_status' => 'required|in:pending,partial,paid',
             'special_instructions' => 'nullable|string|max:1000',
             'products' => 'required|array|min:1',
@@ -245,6 +246,9 @@ class BulkOrderController extends Controller
             }
 
             // Update bulk order details
+            // Store old status for notification comparison
+            $oldStatus = $bulkOrder->status;
+            
             $bulkOrder->customer_name = $validated['customer_name'];
             $bulkOrder->customer_phone = $validated['customer_phone'];
             $bulkOrder->customer_email = $validated['customer_email'];
@@ -255,6 +259,7 @@ class BulkOrderController extends Controller
             $bulkOrder->event_details = $validated['event_details'];
             $bulkOrder->payment_method = $validated['payment_method'];
             $bulkOrder->advance_payment = $validated['advance_payment'] ?? 0;
+            $bulkOrder->status = $validated['status'];
             $bulkOrder->payment_status = $validated['payment_status'];
             $bulkOrder->special_instructions = $validated['special_instructions'];
             // Save direct amounts from app if provided
@@ -338,6 +343,58 @@ class BulkOrderController extends Controller
             $bulkOrder->total_amount = $totalAmount;
             $bulkOrder->save();
 
+            // Send notification if status changed
+            if ($oldStatus !== $validated['status']) {
+                try {
+                    $userId = $bulkOrder->user_id;
+                    
+                    // If user_id is null or admin (1), try to find user by email
+                    if (!$userId || $userId == 1) {
+                        if ($bulkOrder->customer_email) {
+                            $user = \App\Models\User::where('email', $bulkOrder->customer_email)->first();
+                            if ($user) {
+                                $userId = $user->id;
+                                // DON'T update user_id as it causes orders to disappear from user's list
+                                // $bulkOrder->update(['user_id' => $userId]);
+                                \Log::info("Found user {$userId} for notifications, but keeping original user_id {$bulkOrder->user_id}");
+                            }
+                        }
+                    }
+                    
+                    if ($userId) {
+                        switch ($validated['status']) {
+                            case 'processing':
+                                $this->notificationService->sendBulkOrderUpdate(
+                                    $userId, $bulkOrder->id, 'processing',
+                                    'Great news! Your bulk order is now being prepared by our team.'
+                                );
+                                break;
+                            case 'ready':
+                                $this->notificationService->sendBulkOrderUpdate(
+                                    $userId, $bulkOrder->id, 'ready',
+                                    'Your bulk order is ready! Please arrange for pickup or delivery.'
+                                );
+                                break;
+                            case 'completed':
+                                $this->notificationService->sendBulkOrderUpdate(
+                                    $userId, $bulkOrder->id, 'completed',
+                                    'Your bulk order has been completed successfully! Thank you for your business.'
+                                );
+                                break;
+                            case 'cancelled':
+                                $this->notificationService->sendBulkOrderUpdate(
+                                    $userId, $bulkOrder->id, 'cancelled',
+                                    'We\'re sorry! Your bulk order has been cancelled. Please contact us for details.'
+                                );
+                                break;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Notification Error: ' . $e->getMessage());
+                    // Don't fail the update if notification fails
+                }
+            }
+
             DB::commit();
 
             return redirect()->route('bulk-orders.show', $bulkOrder)
@@ -382,14 +439,18 @@ class BulkOrderController extends Controller
 
     public function updateStatus(Request $request, BulkOrder $bulkOrder)
     {
-        if ($request->method() !== 'POST') {
+        \Log::info('updateStatus called for order ' . $bulkOrder->id . ' with status: ' . ($request->status ?? 'null'));
+        
+        // Allow both POST and PUT methods
+        if (!in_array($request->method(), ['POST', 'PUT'])) {
+            \Log::error('Wrong method: ' . $request->method());
             return response()->json([
-                'error' => 'Method not allowed. Please use POST method.'
+                'error' => 'Method not allowed. Please use POST or PUT method.'
             ], 405);
         }
 
         $request->validate([
-            'status' => 'required|in:pending,confirmed,processing,completed,cancelled',
+            'status' => 'required|in:pending,processing,ready,completed,cancelled',
             'total_price' => 'sometimes|numeric|min:0',
             'delivery_date' => 'sometimes|date|after:today'
         ]);
@@ -421,9 +482,9 @@ class BulkOrderController extends Controller
                     $user = \App\Models\User::where('email', $bulkOrder->customer_email)->first();
                     if ($user) {
                         $userId = $user->id;
-                        // Update the bulk order with correct user_id for future
-                        $bulkOrder->update(['user_id' => $userId]);
-                        \Log::info("Updated bulk order {$bulkOrder->id} user_id from {$bulkOrder->user_id} to {$userId}");
+                        // DON'T update user_id as it causes orders to disappear from user's list
+                        // $bulkOrder->update(['user_id' => $userId]);
+                        \Log::info("Found user {$userId} for bulk order {$bulkOrder->id} via email, but keeping original user_id {$bulkOrder->user_id}");
                     }
                 }
             }
@@ -441,18 +502,6 @@ class BulkOrderController extends Controller
                         );
                         break;
 
-                    case 'confirmed':
-                        // Bulk order quote ready
-                        if ($request->total_price && $request->delivery_date) {
-                            $this->notificationService->sendBulkOrderQuote(
-                                $userId, 
-                                $bulkOrder->id, 
-                                $request->total_price, 
-                                $request->delivery_date
-                            );
-                        }
-                        break;
-
                     case 'processing':
                         // Bulk order is being prepared - use simple method call
                         $this->notificationService->sendBulkOrderUpdate(
@@ -460,6 +509,16 @@ class BulkOrderController extends Controller
                             $bulkOrder->id, 
                             'processing',
                             'Great news! Your bulk order is now being prepared by our team.'
+                        );
+                        break;
+
+                    case 'ready':
+                        // Bulk order is ready for pickup/delivery
+                        $this->notificationService->sendBulkOrderUpdate(
+                            $userId, 
+                            $bulkOrder->id, 
+                            'ready',
+                            'Your bulk order is ready! Please arrange for pickup or delivery.'
                         );
                         break;
 

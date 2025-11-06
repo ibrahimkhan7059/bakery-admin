@@ -129,7 +129,7 @@ class BulkOrderController extends Controller
         }
 
         $request->validate([
-            'status' => ['required', 'in:pending,confirmed,processing,completed,cancelled']
+            'status' => ['required', 'in:pending,processing,ready,completed,cancelled']
         ]);
 
         $bulkOrder->update(['status' => $request->status]);

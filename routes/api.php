@@ -92,6 +92,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/orders', [OrderController::class, 'store']);
     Route::get('/v1/orders', [OrderController::class, 'index']);
     Route::get('/v1/orders/{order}', [OrderController::class, 'show']);
+    Route::put('/v1/orders/{order}/mark-completed', [OrderController::class, 'markAsCompleted']);
 
     // Custom Cake Orders
     Route::get('/v1/custom-cake-orders', [CustomCakeOrderController::class, 'index']);

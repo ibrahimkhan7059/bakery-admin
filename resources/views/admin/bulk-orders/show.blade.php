@@ -35,8 +35,13 @@
                             <p><strong>Order Number:</strong> {{ $bulkOrder->order_number }}</p>
                             <p><strong>Order Type:</strong> {{ $bulkOrder->formatted_order_type }}</p>
                             <p><strong>Status:</strong> 
-                                <span class="badge badge-{{ $bulkOrder->status === 'completed' ? 'success' : ($bulkOrder->status === 'cancelled' ? 'danger' : 'warning') }}">
-                                    {{ $bulkOrder->formatted_status }}
+                                <span id="order-status-badge" class="badge badge-{{ 
+                                    $bulkOrder->status === 'completed' ? 'success' : 
+                                    ($bulkOrder->status === 'cancelled' ? 'danger' : 
+                                    ($bulkOrder->status === 'ready' ? 'info' : 
+                                    ($bulkOrder->status === 'processing' ? 'primary' : 'warning')))
+                                }}">
+                                    {{ ucfirst($bulkOrder->status) }}
                                 </span>
                             </p>
                             <p><strong>Payment Status:</strong> 
@@ -160,45 +165,173 @@
             </div>
 
             <!-- Status Update -->
-            @if($bulkOrder->status !== 'completed' && $bulkOrder->status !== 'cancelled')
+            @if($bulkOrder->status !== 'cancelled')
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">Update Status</h6>
                 </div>
                 <div class="card-body">
-                    @if($bulkOrder->status === 'pending' || $bulkOrder->status === 'confirmed')
-                    <form action="{{ route('bulk-orders.update-status', $bulkOrder) }}" method="POST" class="d-inline">
+                    <form action="{{ route('bulk-orders.update-status', $bulkOrder) }}" method="POST" id="status-update-form">
                         @csrf
-                        <input type="hidden" name="status" value="processing">
-                        <button type="submit" class="btn btn-info">
-                            <i class="fas fa-cog"></i> Start Processing
+                        <div class="form-group">
+                            <select name="status" class="form-control" id="status-select">
+                                <option value="pending" {{ $bulkOrder->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="processing" {{ $bulkOrder->status === 'processing' ? 'selected' : '' }}>Processing</option>
+                                <option value="ready" {{ $bulkOrder->status === 'ready' ? 'selected' : '' }}>Ready</option>
+                                <option value="completed" {{ $bulkOrder->status === 'completed' ? 'selected' : '' }}>Completed</option>
+                                <option value="cancelled" {{ $bulkOrder->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mt-3" id="update-status-btn">
+                            <i class="fas fa-save"></i> Update Status
                         </button>
                     </form>
-                    @endif
-
-                    @if($bulkOrder->status === 'processing')
-                    <form action="{{ route('bulk-orders.update-status', $bulkOrder) }}" method="POST" class="d-inline">
-                        @csrf
-                        <input type="hidden" name="status" value="completed">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-check"></i> Mark as Completed
-                        </button>
-                    </form>
-                    @endif
-
-                    @if($bulkOrder->status !== 'cancelled')
-                    <form action="{{ route('bulk-orders.update-status', $bulkOrder) }}" method="POST" class="d-inline">
-                        @csrf
-                        <input type="hidden" name="status" value="cancelled">
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this order?')">
-                            <i class="fas fa-times"></i> Cancel Order
-                        </button>
-                    </form>
-                    @endif
                 </div>
             </div>
             @endif
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('status-update-form');
+    const submitBtn = document.getElementById('update-status-btn');
+    const statusSelect = document.getElementById('status-select');
+    
+    // Function to update status badge in real-time
+    function updateStatusBadge(newStatus) {
+        console.log('🔄 updateStatusBadge called with:', newStatus);
+        
+        const statusBadge = document.getElementById('order-status-badge');
+        console.log('🔍 Status badge element:', statusBadge);
+        
+        if (statusBadge) {
+            console.log('📍 Current badge class:', statusBadge.className);
+            console.log('📍 Current badge text:', statusBadge.textContent);
+            
+            // Map status to Bootstrap badge classes (Bootstrap 4 format)
+            const statusClasses = {
+                'pending': 'badge-warning',
+                'processing': 'badge-primary',
+                'ready': 'badge-info',
+                'completed': 'badge-success',
+                'cancelled': 'badge-danger'
+            };
+            
+            const badgeClass = statusClasses[newStatus] || 'badge-secondary';
+            statusBadge.className = 'badge ' + badgeClass;
+            statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+            
+            console.log('✅ Status badge updated to:', newStatus);
+            console.log('📍 New badge class:', statusBadge.className);
+            console.log('📍 New badge text:', statusBadge.textContent);
+        } else {
+            console.log('❌ Status badge not found - checking all badges on page');
+            const allBadges = document.querySelectorAll('.badge');
+            console.log('🔍 All badges found:', allBadges);
+            allBadges.forEach((badge, index) => {
+                console.log(`Badge ${index}:`, badge.id, badge.className, badge.textContent);
+            });
+        }
+    }
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
+            const selectedStatus = statusSelect.value;
+            console.log('Form submission triggered');
+            console.log('Selected Status:', selectedStatus);
+            
+            // Show loading state
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            submitBtn.disabled = true;
+            
+            // Submit form via AJAX
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Update the status badge immediately
+                    updateStatusBadge(selectedStatus);
+                    
+                    // Show success state
+                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Updated!';
+                    submitBtn.classList.remove('btn-primary');
+                    submitBtn.classList.add('btn-success');
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Status';
+                        submitBtn.classList.remove('btn-success');
+                        submitBtn.classList.add('btn-primary');
+                        submitBtn.disabled = false;
+                    }, 2000);
+                    
+                    // Show success message
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success';
+                    alertDiv.innerHTML = `
+                        <strong>Success!</strong> Status updated to "${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}" successfully.
+                    `;
+                    
+                    // Insert alert at top of container
+                    const container = document.querySelector('.container-fluid');
+                    container.insertBefore(alertDiv, container.firstChild);
+                    
+                    // Auto-remove alert after 3 seconds
+                    setTimeout(() => {
+                        if (alertDiv.parentNode) {
+                            alertDiv.remove();
+                        }
+                    }, 3000);
+                    
+                } else {
+                    throw new Error('Status update failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Show error state
+                submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                submitBtn.classList.remove('btn-primary');
+                submitBtn.classList.add('btn-danger');
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Status';
+                    submitBtn.classList.remove('btn-danger');
+                    submitBtn.classList.add('btn-primary');
+                    submitBtn.disabled = false;
+                }, 3000);
+                
+                // Show error message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger';
+                alertDiv.innerHTML = `
+                    <strong>Error!</strong> Failed to update status. Please try again.
+                `;
+                
+                const container = document.querySelector('.container-fluid');
+                container.insertBefore(alertDiv, container.firstChild);
+                
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 3000);
+            });
+        });
+    }
+});
+</script>
 @endsection
