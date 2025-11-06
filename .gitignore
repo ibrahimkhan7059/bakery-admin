@@ -20,3 +20,23 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Test and debug files
+test_*.php
+check_*.php
+debug_*.php
+temp_*.txt
+temp_*.log
+*.tmp
+
+# Secret and sensitive files
+cookies.txt
+secrets.txt
+*.key
+*.pem
+*.p12
+google-services.json
+firebase-adminsdk-*.json
+
+# Product test files
+product*.json
