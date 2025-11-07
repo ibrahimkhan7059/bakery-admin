@@ -298,17 +298,21 @@
             <div class="row">
                 <div class="col-md-8">
                     <div class="card border-0 shadow-sm rounded-lg glass-card">
-                        <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0 fw-bold text-gray-800">Sales Overview</h5>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="text-sm">
-                                    <span class="text-muted">Today:</span>
-                                    <span class="fw-bold text-success">Rs{{ number_format(\App\Models\Order::whereDate('created_at', today())->where(function($q) { $q->whereIn('status', ['completed', 'delivered'])->orWhere('payment_status', 'paid'); })->sum('total_amount'), 0) }}</span>
-                                </div>
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <button type="button" class="btn btn-outline-primary active" id="monthlyBtn">Monthly</button>
-                                    <button type="button" class="btn btn-outline-primary" id="weeklyBtn">Weekly</button>
-                                    <button type="button" class="btn btn-outline-primary" id="todayBtn">Today</button>
+                        <div class="card-header py-3" style="background: linear-gradient(135deg, #FF6F61 0%, #FF8A7A 100%);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0 fw-bold text-white">
+                                    <i class="fas fa-chart-line me-2"></i>Revenue Overview
+                                </h5>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="text-white">
+                                        <span class="opacity-75">Today:</span>
+                                        <span class="fw-bold">Rs{{ number_format(\App\Models\Order::whereDate('created_at', today())->where(function($q) { $q->whereIn('status', ['completed', 'delivered'])->orWhere('payment_status', 'paid'); })->sum('total_amount'), 0) }}</span>
+                                    </div>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-light active" id="monthlyBtn">Monthly</button>
+                                        <button type="button" class="btn btn-outline-light" id="weeklyBtn">Weekly</button>
+                                        <button type="button" class="btn btn-outline-light" id="todayBtn">Today</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -379,118 +383,57 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Debug: Check what data we're getting
-    console.log('📊 Chart Debug Info:');
-    console.log('Monthly Labels:', @json($monthlyLabels));
-    console.log('Monthly Sales:', @json($monthlySales));
-    console.log('Weekly Labels:', @json($weeklyLabels));
-    console.log('Weekly Sales:', @json($weeklySales));
-    console.log('Today Labels:', @json($todayLabels));
-    console.log('Today Sales:', @json($todaySales));
+    console.log('📊 Revenue Chart Loading...');
     
-    // Sales chart data with enhanced styling
+    // Simple chart data - only completed order revenue
     const monthlyData = {
         labels: @json($monthlyLabels).length > 0 ? @json($monthlyLabels) : ['Nov 2025'],
         datasets: [{
-            label: '💰 Monthly Revenue',
+            label: 'Monthly Revenue (Rs)',
             data: @json($monthlySales).length > 0 ? @json($monthlySales) : [0],
-            borderColor: 'rgba(99, 102, 241, 1)',
-            backgroundColor: function(context) {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea) return null;
-                
-                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
-                gradient.addColorStop(0.7, 'rgba(99, 102, 241, 0.1)');
-                gradient.addColorStop(1, 'rgba(99, 102, 241, 0.02)');
-                return gradient;
-            },
-            tension: 0.4,
+            borderColor: '#FF6F61',
+            backgroundColor: 'rgba(255, 111, 97, 0.1)',
+            borderWidth: 3,
             fill: true,
-            borderWidth: 4,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: 'rgba(99, 102, 241, 1)',
-            pointBorderWidth: 3,
-            pointRadius: 7,
-            pointHoverRadius: 10,
-            pointHoverBackgroundColor: 'rgba(99, 102, 241, 1)',
-            pointHoverBorderColor: '#ffffff',
-            pointHoverBorderWidth: 4,
-            shadowOffsetX: 0,
-            shadowOffsetY: 4,
-            shadowBlur: 10,
-            shadowColor: 'rgba(99, 102, 241, 0.3)'
+            tension: 0.3,
+            pointBackgroundColor: '#FF6F61',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5
         }]
     };
 
     const weeklyData = {
         labels: @json($weeklyLabels).length > 0 ? @json($weeklyLabels) : ['Week 1', 'Week 2', 'Week 3', 'Current'],
         datasets: [{
-            label: '📈 Weekly Revenue',
+            label: 'Weekly Revenue (Rs)',
             data: @json($weeklySales).length > 0 ? @json($weeklySales) : [0, 0, 0, 0],
-            borderColor: 'rgba(16, 185, 129, 1)',
-            backgroundColor: function(context) {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea) return null;
-                
-                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
-                gradient.addColorStop(0.7, 'rgba(16, 185, 129, 0.1)');
-                gradient.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
-                return gradient;
-            },
-            tension: 0.4,
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            borderWidth: 3,
             fill: true,
-            borderWidth: 4,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: 'rgba(16, 185, 129, 1)',
-            pointBorderWidth: 3,
-            pointRadius: 7,
-            pointHoverRadius: 10,
-            pointHoverBackgroundColor: 'rgba(16, 185, 129, 1)',
-            pointHoverBorderColor: '#ffffff',
-            pointHoverBorderWidth: 4,
-            shadowOffsetX: 0,
-            shadowOffsetY: 4,
-            shadowBlur: 10,
-            shadowColor: 'rgba(16, 185, 129, 0.3)'
+            tension: 0.3,
+            pointBackgroundColor: '#28a745',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5
         }]
     };
 
     const todayData = {
         labels: @json($todayLabels).length > 0 ? @json($todayLabels) : ['00:00', '06:00', '12:00', '18:00', '23:00'],
         datasets: [{
-            label: '⏰ Hourly Revenue',
+            label: 'Hourly Revenue (Rs)',
             data: @json($todaySales).length > 0 ? @json($todaySales) : [0, 0, 0, 0, 0],
-            borderColor: 'rgba(245, 158, 11, 1)',
-            backgroundColor: function(context) {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea) return null;
-                
-                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                gradient.addColorStop(0, 'rgba(245, 158, 11, 0.3)');
-                gradient.addColorStop(0.7, 'rgba(245, 158, 11, 0.1)');
-                gradient.addColorStop(1, 'rgba(245, 158, 11, 0.02)');
-                return gradient;
-            },
-            tension: 0.4,
+            borderColor: '#ffc107',
+            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+            borderWidth: 3,
             fill: true,
-            borderWidth: 4,
-            pointBackgroundColor: '#ffffff',
-            pointBorderColor: 'rgba(245, 158, 11, 1)',
-            pointBorderWidth: 3,
-            pointRadius: 7,
-            pointHoverRadius: 10,
-            pointHoverBackgroundColor: 'rgba(245, 158, 11, 1)',
-            pointHoverBorderColor: '#ffffff',
-            pointHoverBorderWidth: 4,
-            shadowOffsetX: 0,
-            shadowOffsetY: 4,
-            shadowBlur: 10,
-            shadowColor: 'rgba(245, 158, 11, 0.3)'
+            tension: 0.3,
+            pointBackgroundColor: '#ffc107',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5
         }]
     };
 
@@ -500,88 +443,40 @@ document.addEventListener('DOMContentLoaded', function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: {
-                padding: {
-                    top: 20,
-                    right: 20,
-                    bottom: 20,
-                    left: 20
-                }
-            },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top',
                     labels: {
-                        usePointStyle: true,
-                        padding: 25,
-                        font: {
-                            size: 14,
-                            weight: 'bold',
-                            family: 'Inter, system-ui, sans-serif'
-                        },
-                        color: '#374151'
+                        font: { size: 14, weight: 'bold' },
+                        color: '#333',
+                        padding: 20
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                    titleColor: '#f9fafb',
-                    bodyColor: '#f9fafb',
-                    borderColor: 'rgba(99, 102, 241, 0.8)',
-                    borderWidth: 2,
-                    cornerRadius: 12,
-                    displayColors: true,
-                    padding: 16,
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    },
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    cornerRadius: 8,
+                    padding: 12,
                     callbacks: {
-                        title: function(context) {
-                            return 'Sales for ' + context[0].label;
-                        },
                         label: function(context) {
-                            return '💰 Revenue: Rs ' + new Intl.NumberFormat('en-PK').format(context.parsed.y);
-                        },
-                        afterLabel: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.parsed.y / total) * 100).toFixed(1);
-                            return `📊 ${percentage}% of total sales`;
+                            return context.dataset.label + ': Rs ' + new Intl.NumberFormat('en-PK').format(context.parsed.y);
                         }
                     }
                 }
             },
             scales: {
                 y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
+                    beginAtZero: true,
                     title: {
                         display: true,
-                        text: '💰 Revenue (PKR)',
-                        font: {
-                            size: 14,
-                            weight: 'bold',
-                            family: 'Inter, system-ui, sans-serif'
-                        },
-                        color: '#374151',
-                        padding: 10
+                        text: 'Revenue (PKR)',
+                        font: { size: 12, weight: 'bold' },
+                        color: '#666'
                     },
-                    beginAtZero: true,
                     grid: {
-                        color: 'rgba(99, 102, 241, 0.1)',
-                        drawBorder: true,
-                        borderColor: 'rgba(99, 102, 241, 0.3)',
-                        borderWidth: 2,
-                        lineWidth: 1
-                    },
-                    border: {
-                        display: true,
-                        color: 'rgba(99, 102, 241, 0.5)',
-                        width: 2
+                        color: 'rgba(0, 0, 0, 0.1)'
                     },
                     ticks: {
                         callback: function(value) {
@@ -592,75 +487,29 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                             return 'Rs ' + new Intl.NumberFormat('en-PK').format(value);
                         },
-                        font: {
-                            size: 12,
-                            family: 'Inter, system-ui, sans-serif',
-                            weight: '500'
-                        },
-                        color: '#374151',
-                        padding: 10,
-                        maxTicksLimit: 8
+                        font: { size: 11 },
+                        color: '#666'
                     }
                 },
                 x: {
-                    type: 'category',
-                    display: true,
-                    position: 'bottom',
                     title: {
                         display: true,
-                        text: '📅 Time Period',
-                        font: {
-                            size: 14,
-                            weight: 'bold',
-                            family: 'Inter, system-ui, sans-serif'
-                        },
-                        color: '#374151',
-                        padding: 10
+                        text: 'Time Period',
+                        font: { size: 12, weight: 'bold' },
+                        color: '#666'
                     },
                     grid: {
-                        display: true,
-                        color: 'rgba(99, 102, 241, 0.1)',
-                        drawBorder: true,
-                        borderColor: 'rgba(99, 102, 241, 0.3)',
-                        borderWidth: 2,
-                        lineWidth: 1
-                    },
-                    border: {
-                        display: true,
-                        color: 'rgba(99, 102, 241, 0.5)',
-                        width: 2
+                        color: 'rgba(0, 0, 0, 0.1)'
                     },
                     ticks: {
-                        font: {
-                            size: 12,
-                            family: 'Inter, system-ui, sans-serif',
-                            weight: '600'
-                        },
-                        color: '#374151',
-                        maxRotation: 45,
-                        minRotation: 0,
-                        padding: 10,
-                        callback: function(value, index, values) {
-                            // Force show labels instead of values
-                            const labels = this.chart.data.labels;
-                            return labels[index] || '';
-                        }
+                        font: { size: 11 },
+                        color: '#666',
+                        maxRotation: 45
                     }
                 }
             },
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            },
             animation: {
-                duration: 1500,
-                easing: 'easeInOutCubic'
-            },
-            elements: {
-                point: {
-                    hoverRadius: 10,
-                    hoverBorderWidth: 3
-                }
+                duration: 800
             }
         }
     };
@@ -675,90 +524,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
     monthlyBtn.addEventListener('click', function() {
         monthlyBtn.classList.add('active');
-        weeklyBtn.classList.remove('active');
-        todayBtn.classList.remove('active');
+        monthlyBtn.classList.remove('btn-outline-light');
+        monthlyBtn.classList.add('btn-light');
+        
+        weeklyBtn.classList.remove('active', 'btn-light');
+        weeklyBtn.classList.add('btn-outline-light');
+        
+        todayBtn.classList.remove('active', 'btn-light');
+        todayBtn.classList.add('btn-outline-light');
         
         salesChart.data = monthlyData;
-        salesChart.update('active');
-        
-        // Add smooth transition effect
-        salesChart.options.animation.duration = 800;
-        console.log('📊 Switched to Monthly View');
+        salesChart.update();
+        console.log('📊 Monthly Revenue View');
     });
 
     weeklyBtn.addEventListener('click', function() {
         weeklyBtn.classList.add('active');
-        monthlyBtn.classList.remove('active');
-        todayBtn.classList.remove('active');
+        weeklyBtn.classList.remove('btn-outline-light');
+        weeklyBtn.classList.add('btn-light');
+        
+        monthlyBtn.classList.remove('active', 'btn-light');
+        monthlyBtn.classList.add('btn-outline-light');
+        
+        todayBtn.classList.remove('active', 'btn-light');
+        todayBtn.classList.add('btn-outline-light');
         
         salesChart.data = weeklyData;
-        salesChart.update('active');
-        
-        // Add smooth transition effect
-        salesChart.options.animation.duration = 800;
-        console.log('📈 Switched to Weekly View');
+        salesChart.update();
+        console.log('📈 Weekly Revenue View');
     });
 
     todayBtn.addEventListener('click', function() {
         todayBtn.classList.add('active');
-        monthlyBtn.classList.remove('active');
-        weeklyBtn.classList.remove('active');
+        todayBtn.classList.remove('btn-outline-light');
+        todayBtn.classList.add('btn-light');
+        
+        monthlyBtn.classList.remove('active', 'btn-light');
+        monthlyBtn.classList.add('btn-outline-light');
+        
+        weeklyBtn.classList.remove('active', 'btn-light');
+        weeklyBtn.classList.add('btn-outline-light');
         
         salesChart.data = todayData;
-        salesChart.update('active');
-        
-        // Add smooth transition effect
-        salesChart.options.animation.duration = 800;
-        console.log('⏰ Switched to Today View');
+        salesChart.update();
+        console.log('⏰ Today Revenue View');
     });
 
-    // Auto-refresh chart every 2 minutes
+    // Simple auto-refresh every 5 minutes
     setInterval(function() {
-        fetch('{{ route("admin.dashboard.chart-data") }}')
-            .then(response => response.json())
-            .then(data => {
-                // Update monthly data
-                monthlyData.labels = data.monthly.labels;
-                monthlyData.datasets[0].data = data.monthly.data;
-                
-                // Update weekly data
-                weeklyData.labels = data.weekly.labels;
-                weeklyData.datasets[0].data = data.weekly.data;
-                
-                // Update today data
-                todayData.labels = data.today.labels;
-                todayData.datasets[0].data = data.today.data;
-                
-                // Update current chart
-                if (monthlyBtn.classList.contains('active')) {
-                    salesChart.data = monthlyData;
-                } else if (weeklyBtn.classList.contains('active')) {
-                    salesChart.data = weeklyData;
-                } else {
-                    salesChart.data = todayData;
-                }
-                
-                salesChart.update('none'); // Update without animation
-                console.log('✅ Chart data refreshed successfully');
-            })
-            .catch(error => {
-                console.log('❌ Auto-refresh failed:', error);
-            });
-    }, 120000); // 2 minutes
-
-    // Add real-time indicator
-    const chartHeader = document.querySelector('.card-header h5');
-    const indicator = document.createElement('span');
-    indicator.innerHTML = ' <i class="bi bi-circle-fill text-success" style="font-size: 8px;" title="Live Data"></i>';
-    chartHeader.appendChild(indicator);
+        location.reload();
+    }, 300000); // 5 minutes
     
-    // Animate indicator every 2 minutes
-    setInterval(function() {
-        indicator.innerHTML = ' <i class="bi bi-circle-fill text-warning" style="font-size: 8px;" title="Updating..."></i>';
-        setTimeout(() => {
-            indicator.innerHTML = ' <i class="bi bi-circle-fill text-success" style="font-size: 8px;" title="Live Data"></i>';
-        }, 1000);
-    }, 120000);
+    console.log('✅ Revenue Chart Ready - Shows completed orders only');
 });
 </script>
 @endpush

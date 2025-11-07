@@ -19,11 +19,21 @@ class LoginController extends Controller
     {
         try {
             $request->validate([
-                'email' => ['required', 'email', 'exists:users,email'],
+                'email' => [
+                    'required',
+                    'string',
+                    'email:rfc,dns',
+                    'max:255',
+                    'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/',
+                    'exists:users,email'
+                ],
                 'password' => ['required', 'min:8'],
             ], [
                 'email.required' => 'Please enter your email address.',
-                'email.email' => 'Please enter a valid email address.',
+                'email.string' => 'Email must be a valid string.',
+                'email.email' => 'Please enter a valid email address format.',
+                'email.max' => 'Email address cannot exceed 255 characters.',
+                'email.regex' => 'Please enter a properly formatted email address.',
                 'email.exists' => 'This email is not registered with us.',
                 'password.required' => 'Please enter your password.',
                 'password.min' => 'Password must be at least 8 characters.',

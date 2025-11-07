@@ -43,8 +43,9 @@
             <!-- Toggle Button -->
             <button
                 id="sidebarToggle"
-                class="btn position-fixed"
-                style="z-index: 1100; top: 70px; left: 20px;"
+                class="btn position-fixed d-md-none"
+                style="z-index: 1100; top: 20px; left: 20px;"
+                aria-label="Toggle sidebar"
             >
                 <i class="fas fa-bars"></i>
             </button>
@@ -135,9 +136,9 @@
             <div class="main-content">
                 <!-- Top Navbar -->
                 <div
-                    class="top-navbar d-flex justify-content-between align-items-center"
+                    class="top-navbar d-flex justify-content-between align-items-center flex-wrap"
                 >
-                    <h4 class="mb-4">@yield('title', 'Dashboard')</h4>
+                    <h4 class="mb-3 mb-md-4 mt-3 mt-md-0">@yield('title', 'Dashboard')</h4>
                     <div class="mb-4 user-dropdown">
                         <a
                             class="dropdown-toggle"
@@ -197,24 +198,31 @@
                         toggleIcon.classList.remove("fa-bars");
                         toggleIcon.classList.add("fa-times");
                         sidebarToggle.setAttribute("aria-label", "Close sidebar");
-                        sidebarToggle.querySelector(".btn-text").textContent = "Close";
                     } else {
                         toggleIcon.classList.remove("fa-times");
                         toggleIcon.classList.add("fa-bars");
-                        sidebarToggle.setAttribute("aria-label", "Open sidebar");
-                        sidebarToggle.querySelector(".btn-text").textContent = "Open";
+                        sidebarToggle.setAttribute("aria-label", "Toggle sidebar");
                     }
                 }
 
                 sidebarToggle.addEventListener("click", function () {
                     sidebar.classList.toggle("active");
                     overlay.classList.toggle("active");
+                    
+                    // Prevent body scroll when sidebar is open on mobile
+                    if (sidebar.classList.contains("active")) {
+                        document.body.style.overflow = "hidden";
+                    } else {
+                        document.body.style.overflow = "";
+                    }
+                    
                     updateToggleIcon();
                 });
 
                 overlay.addEventListener("click", function () {
                     sidebar.classList.remove("active");
                     overlay.classList.remove("active");
+                    document.body.style.overflow = "";
                     updateToggleIcon();
                 });
 

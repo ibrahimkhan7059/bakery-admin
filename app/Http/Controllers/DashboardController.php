@@ -27,114 +27,57 @@ class DashboardController extends Controller
             'cancelled' => Order::where('status', 'cancelled')->count(),
         ];
         
-        // Calculate total revenue using combined approach (status + payment based)
-        $totalRevenue = Order::where(function($query) {
-            $query->whereIn('status', ['completed', 'delivered'])
-                  ->orWhere('payment_status', 'paid');
-        })->sum('total_amount');
+        // Calculate total revenue from completed orders only
+        $totalRevenue = Order::where('status', 'completed')->sum('total_amount');
         
-        // Get recent orders for the table
-        $recentOrders = Order::latest()->take(5)->get();
-        
-        // Get popular products (simple fallback approach)
-        $popularProducts = Product::with('category')->latest()->limit(3)->get();
-        
-        // Try to get actual popular products if order_items table exists
-        try {
-            $popularProductsQuery = DB::table('products')
-                ->select('products.id', DB::raw('SUM(order_items.quantity) as total_ordered'))
-                ->leftJoin('order_items', 'products.id', '=', 'order_items.product_id')
-                ->groupBy('products.id')
-                ->orderByDesc('total_ordered')
-                ->limit(3)
-                ->pluck('id');
-            
-            if ($popularProductsQuery->isNotEmpty()) {
-                $popularProducts = Product::with('category')
-                    ->whereIn('id', $popularProductsQuery)
-                    ->get();
-            }
-        } catch (\Exception $e) {
-            // If order_items table doesn't exist, use fallback
-            \Log::info('Using fallback popular products due to: ' . $e->getMessage());
-        }
-        
-        // Get recent categories with their images
-        $recentCategories = Category::withCount('products')->latest()->limit(5)->get();
-        
-        // Get low stock products (stock <= 5)
-        $lowStockProducts = Product::where('stock', '<=', 5)->orderBy('stock', 'asc')->limit(5)->get();
-        
-        // Get monthly sales data - only show months where we actually have orders
+        // Simple monthly revenue data (last 6 months)
         $monthlySales = [];
         $monthlyLabels = [];
-        
-        // Get the first order date to determine when project actually started
-        $firstOrderDate = Order::orderBy('created_at', 'asc')->first();
-        $projectStartDate = $firstOrderDate ? $firstOrderDate->created_at : now();
-        
-        // Calculate how many months to show (max 12, but only from project start)
-        $monthsToShow = min(12, now()->diffInMonths($projectStartDate) + 1);
-        
-        for ($i = $monthsToShow - 1; $i >= 0; $i--) {
+        for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            
-            // Only show months from project start date onwards
-            if ($date->gte($projectStartDate->startOfMonth())) {
-                $monthlyLabels[] = $date->format('M Y');
-                
-                $monthSales = Order::whereYear('created_at', $date->year)
-                                 ->whereMonth('created_at', $date->month)
-                                 ->where(function($query) {
-                                     $query->whereIn('status', ['completed', 'delivered'])
-                                           ->orWhere('payment_status', 'paid');
-                                 })
-                                 ->sum('total_amount');
-                
-                $monthlySales[] = (float) $monthSales;
-            }
+            $monthlyLabels[] = $date->format('M Y');
+            $monthSales = Order::whereYear('created_at', $date->year)
+                             ->whereMonth('created_at', $date->month)
+                             ->where('status', 'completed')
+                             ->sum('total_amount');
+            $monthlySales[] = (float) $monthSales;
         }
         
-        // Get weekly sales data for current month
+        // Simple weekly revenue data (last 4 weeks)
         $weeklySales = [];
         $weeklyLabels = [];
-        
         for ($i = 3; $i >= 0; $i--) {
             $startOfWeek = now()->subWeeks($i)->startOfWeek();
             $endOfWeek = now()->subWeeks($i)->endOfWeek();
-            
-            $weeklyLabels[] = 'Week ' . ($i == 0 ? 'Current' : $i + 1);
-            
+            $weeklyLabels[] = $i == 0 ? 'This Week' : $i . ' weeks ago';
             $weekSales = Order::whereBetween('created_at', [$startOfWeek, $endOfWeek])
-                            ->where(function($query) {
-                                $query->whereIn('status', ['completed', 'delivered'])
-                                      ->orWhere('payment_status', 'paid');
-                            })
+                            ->where('status', 'completed')
                             ->sum('total_amount');
-            
             $weeklySales[] = (float) $weekSales;
         }
         
-        // Get today's hourly sales data (24 hours)
+        // Simple today revenue data (every 4 hours)
         $todaySales = [];
         $todayLabels = [];
-        
-        for ($i = 23; $i >= 0; $i--) {
-            $hour = now()->subHours($i);
-            $todayLabels[] = $hour->format('H:00');
-            
+        for ($i = 0; $i < 24; $i += 4) {
+            $hour = now()->startOfDay()->addHours($i);
+            $todayLabels[] = $hour->format('H:i');
             $hourSales = Order::whereBetween('created_at', [
-                                $hour->startOfHour(), 
-                                $hour->endOfHour()
+                                $hour, 
+                                $hour->copy()->addHours(4)
                             ])
-                            ->where(function($query) {
-                                $query->whereIn('status', ['completed', 'delivered'])
-                                      ->orWhere('payment_status', 'paid');
-                            })
+                            ->where('status', 'completed')
                             ->sum('total_amount');
-            
             $todaySales[] = (float) $hourSales;
         }
+        
+        // Get other dashboard data
+        $recentOrders = Order::latest()->take(5)->get();
+        $popularProducts = Product::with('category')->latest()->limit(3)->get();
+        $recentCategories = Category::withCount('products')->latest()->limit(5)->get();
+        $lowStockProducts = Product::where('stock', '<=', 5)->orderBy('stock', 'asc')->limit(5)->get();
+        
+
         
         return view('admin.dashboard', compact(
             'totalOrders', 'totalProducts', 'totalCustomers', 'totalRevenue', 
@@ -146,90 +89,50 @@ class DashboardController extends Controller
 
     public function getChartData()
     {
-        // Get monthly sales data - only show months where we actually have orders
+        // Simple chart data for AJAX requests (completed orders only)
+        
+        // Monthly data (last 6 months)
         $monthlySales = [];
         $monthlyLabels = [];
-        
-        // Get the first order date to determine when project actually started
-        $firstOrderDate = Order::orderBy('created_at', 'asc')->first();
-        $projectStartDate = $firstOrderDate ? $firstOrderDate->created_at : now();
-        
-        // Calculate how many months to show (max 12, but only from project start)
-        $monthsToShow = min(12, now()->diffInMonths($projectStartDate) + 1);
-        
-        for ($i = $monthsToShow - 1; $i >= 0; $i--) {
+        for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            
-            // Only show months from project start date onwards
-            if ($date->gte($projectStartDate->startOfMonth())) {
-                $monthlyLabels[] = $date->format('M Y');
-                
-                $monthSales = Order::whereYear('created_at', $date->year)
-                                 ->whereMonth('created_at', $date->month)
-                                 ->where(function($query) {
-                                     $query->whereIn('status', ['completed', 'delivered'])
-                                           ->orWhere('payment_status', 'paid');
-                                 })
-                                 ->sum('total_amount');
-                
-                $monthlySales[] = (float) $monthSales;
-            }
+            $monthlyLabels[] = $date->format('M Y');
+            $monthlySales[] = (float) Order::whereYear('created_at', $date->year)
+                                          ->whereMonth('created_at', $date->month)
+                                          ->where('status', 'completed')
+                                          ->sum('total_amount');
         }
         
-        // Get weekly sales data for current month
+        // Weekly data (last 4 weeks)
         $weeklySales = [];
         $weeklyLabels = [];
-        
         for ($i = 3; $i >= 0; $i--) {
             $startOfWeek = now()->subWeeks($i)->startOfWeek();
             $endOfWeek = now()->subWeeks($i)->endOfWeek();
-            
-            $weeklyLabels[] = 'Week ' . ($i == 0 ? 'Current' : $i + 1);
-            
-            $weekSales = Order::whereBetween('created_at', [$startOfWeek, $endOfWeek])
-                            ->where(function($query) {
-                                $query->whereIn('status', ['completed', 'delivered'])
-                                      ->orWhere('payment_status', 'paid');
-                            })
-                            ->sum('total_amount');
-            
-            $weeklySales[] = (float) $weekSales;
+            $weeklyLabels[] = $i == 0 ? 'This Week' : $i . ' weeks ago';
+            $weeklySales[] = (float) Order::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+                                          ->where('status', 'completed')
+                                          ->sum('total_amount');
         }
 
-        // Get today's hourly sales data (24 hours)
+        // Today data (every 4 hours)
         $todaySales = [];
         $todayLabels = [];
-        
-        for ($i = 23; $i >= 0; $i--) {
-            $hour = now()->subHours($i);
-            $todayLabels[] = $hour->format('H:00');
-            
-            $hourSales = Order::whereBetween('created_at', [
-                                $hour->startOfHour(), 
-                                $hour->endOfHour()
-                            ])
-                            ->where(function($query) {
-                                $query->whereIn('status', ['completed', 'delivered'])
-                                      ->orWhere('payment_status', 'paid');
-                            })
-                            ->sum('total_amount');
-            
-            $todaySales[] = (float) $hourSales;
+        for ($i = 0; $i < 24; $i += 4) {
+            $hour = now()->startOfDay()->addHours($i);
+            $todayLabels[] = $hour->format('H:i');
+            $todaySales[] = (float) Order::whereBetween('created_at', [
+                                          $hour, 
+                                          $hour->copy()->addHours(4)
+                                      ])
+                                      ->where('status', 'completed')
+                                      ->sum('total_amount');
         }
 
         return response()->json([
-            'monthly' => [
-                'labels' => $monthlyLabels,
-                'data' => $monthlySales
-            ],
-            'weekly' => [
-                'labels' => $weeklyLabels,
-                'data' => $weeklySales
-            ],
-            'today' => [
-                'labels' => $todayLabels,
-                'data' => $todaySales
-            ]
+            'monthly' => ['labels' => $monthlyLabels, 'data' => $monthlySales],
+            'weekly' => ['labels' => $weeklyLabels, 'data' => $weeklySales],
+            'today' => ['labels' => $todayLabels, 'data' => $todaySales]
         ]);
     }
 } 

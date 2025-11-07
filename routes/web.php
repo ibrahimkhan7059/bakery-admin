@@ -108,8 +108,6 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     // Settings Routes
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
-    Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('settings.notifications');
-    Route::put('/settings/security', [SettingsController::class, 'updateSecurity'])->name('settings.security');
 
     // Cake Config Routes
     Route::get('/cake-config', [CakeConfigController::class, 'index'])->name('admin.cake-config.index');
