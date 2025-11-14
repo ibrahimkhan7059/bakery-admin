@@ -38,7 +38,7 @@
                             <th>Phone</th>
                             <th>Address</th>
                             <th>Joined Date</th>
-                            <th>Actions</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -49,22 +49,37 @@
                                 <td>{{ $customer->phone }}</td>
                                 <td>{{ $customer->address ?? 'Not provided' }}</td>
                                 <td>{{ $customer->created_at->format('M d, Y') }}</td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <a href="{{ route('customers.show', $customer) }}" class="btn btn-sm btn-info hover-lift" title="View">
-                                            <i class="bi bi-eye-fill"></i>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group" aria-label="Customer actions">
+                                        <a href="{{ route('customers.show', $customer) }}" 
+                                           class="btn btn-sm btn-outline-info hover-lift" 
+                                           title="View Customer"
+                                           data-bs-toggle="tooltip">
+                                            <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{{ route('customers.edit', $customer) }}" class="btn btn-sm btn-primary hover-lift" title="Edit">
-                                            <i class="bi bi-pencil-fill"></i>
+                                        <a href="{{ route('customers.edit', $customer) }}" 
+                                           class="btn btn-sm btn-outline-primary hover-lift" 
+                                           title="Edit Customer"
+                                           data-bs-toggle="tooltip">
+                                            <i class="bi bi-pencil-square"></i>
                                         </a>
-                                        <form action="{{ route('customers.destroy', $customer) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger hover-lift" title="Delete" onclick="return confirm('Are you sure you want to delete this customer?')">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger hover-lift" 
+                                                title="Delete Customer"
+                                                data-bs-toggle="tooltip"
+                                                onclick="deleteCustomer({{ $customer->id }}, '{{ $customer->name }}')">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
                                     </div>
+                                    
+                                    <!-- Hidden form for deletion -->
+                                    <form id="delete-form-{{ $customer->id }}" 
+                                          action="{{ route('customers.destroy', $customer) }}" 
+                                          method="POST" 
+                                          style="display: none;">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
                                 </td>
                             </tr>
                         @empty
@@ -87,4 +102,77 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+<style>
+/* Action buttons styling */
+.btn-group .btn {
+    border-radius: 6px !important;
+    margin: 0 2px;
+}
+
+.btn-group .btn i {
+    font-size: 0.875rem;
+}
+
+.btn-outline-info:hover {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-outline-success:hover {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+/* Tooltip positioning fix */
+.tooltip {
+    font-size: 12px !important;
+}
+
+.tooltip-inner {
+    max-width: 200px;
+    padding: 6px 10px;
+    background-color: #333 !important;
+    border-radius: 4px;
+}
+
+.bs-tooltip-bottom .tooltip-arrow::before {
+    border-bottom-color: #333 !important;
+}
+</style>
+
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            placement: 'bottom',
+            delay: { show: 300, hide: 100 }
+        });
+    });
+});
+
+// Sweet delete confirmation
+function deleteCustomer(customerId, customerName) {
+    if (confirm(`Are you sure you want to delete customer "${customerName}"?\n\nThis action cannot be undone.`)) {
+        document.getElementById('delete-form-' + customerId).submit();
+    }
+}
+
+// Auto-refresh every 10 seconds
+setInterval(function() {
+    location.reload();
+}, 10000);
+</script> 

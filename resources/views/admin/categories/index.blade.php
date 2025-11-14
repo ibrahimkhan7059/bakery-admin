@@ -53,7 +53,7 @@
                             <th>Image</th>
                             <th>Name</th>
                             <th>Products</th>
-                            <th>Actions</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,16 +68,26 @@
                                 </td>
                                 <td>{{ $category->name }}</td>
                                 <td>{{ $category->products_count }}</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="{{ route('categories.products', $category) }}" class="btn btn-sm btn-outline-primary hover-lift">
+                                <td class="text-center">
+                                    <div class="btn-group" role="group" aria-label="Category actions">
+                                        <a href="{{ route('categories.products', $category) }}" 
+                                           class="btn btn-sm btn-outline-info hover-lift" 
+                                           title="View Products"
+                                           data-bs-toggle="tooltip">
                                             <i class="bi bi-box-seam"></i>
                                         </a>
-                                        <a href="{{ route('categories.edit', $category) }}" class="btn btn-sm btn-outline-secondary hover-lift">
-                                            <i class="bi bi-pencil"></i>
+                                        <a href="{{ route('categories.edit', $category) }}" 
+                                           class="btn btn-sm btn-outline-primary hover-lift" 
+                                           title="Edit Category"
+                                           data-bs-toggle="tooltip">
+                                            <i class="bi bi-pencil-square"></i>
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-outline-danger hover-lift" onclick="confirmDelete('{{ $category->id }}', '{{ $category->name }}')">
-                                            <i class="bi bi-trash"></i>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger hover-lift" 
+                                                title="Delete Category"
+                                                data-bs-toggle="tooltip"
+                                                onclick="deleteCategory('{{ $category->id }}', '{{ $category->name }}')">
+                                            <i class="bi bi-trash3"></i>
                                         </button>
                                         <form id="delete-form-{{ $category->id }}" action="{{ route('categories.destroy', $category) }}" method="POST" style="display: none;">
                                             @csrf
@@ -104,17 +114,17 @@
             @if($categories->hasPages())
                 <div class="d-flex justify-content-center mt-4">
                     <nav aria-label="Page navigation">
-                        <ul class="pagination pagination-sm justify-content-center">
+                        <ul class="pagination pagination-sm justify-content-center compact-pagination">
                             {{-- Previous Page Link --}}
                             @if ($categories->onFirstPage())
                                 <li class="page-item disabled">
-                                    <span class="page-link">
+                                    <span class="page-link compact-page-link">
                                         <i class="bi bi-chevron-left"></i>
                                     </span>
                                 </li>
                             @else
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $categories->previousPageUrl() }}" rel="prev">
+                                    <a class="page-link compact-page-link" href="{{ $categories->previousPageUrl() }}" rel="prev">
                                         <i class="bi bi-chevron-left"></i>
                                     </a>
                                 </li>
@@ -125,11 +135,11 @@
                                 @foreach ($categories->getUrlRange(1, $categories->lastPage()) as $page => $url)
                                     @if ($page == $categories->currentPage())
                                         <li class="page-item active">
-                                            <span class="page-link">{{ $page }}</span>
+                                            <span class="page-link compact-page-link">{{ $page }}</span>
                                         </li>
                                     @else
                                         <li class="page-item">
-                                            <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                            <a class="page-link compact-page-link" href="{{ $url }}">{{ $page }}</a>
                                         </li>
                                     @endif
                                 @endforeach
@@ -138,13 +148,13 @@
                             {{-- Next Page Link --}}
                             @if ($categories->hasMorePages())
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $categories->nextPageUrl() }}" rel="next">
+                                    <a class="page-link compact-page-link" href="{{ $categories->nextPageUrl() }}" rel="next">
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
                             @else
                                 <li class="page-item disabled">
-                                    <span class="page-link">
+                                    <span class="page-link compact-page-link">
                                         <i class="bi bi-chevron-right"></i>
                                     </span>
                                 </li>
@@ -242,4 +252,104 @@ document.addEventListener('DOMContentLoaded', function() {
     border-color: #dee2e6;
     color: #6c757d;
 }
+
+/* Compact Pagination Styles */
+.compact-pagination .page-link {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.875rem !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    margin: 0 2px !important;
+}
+
+.compact-pagination .page-item {
+    margin: 0 !important;
+}
+
+.compact-pagination .page-link i {
+    font-size: 0.75rem !important;
+}
+
+.compact-pagination .page-item.active .page-link {
+    background-color: #FF6F61 !important;
+    border-color: #FF6F61 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.compact-pagination .page-link:hover {
+    background-color: rgba(255, 111, 97, 0.1) !important;
+    border-color: #FF6F61 !important;
+    color: #FF6F61 !important;
+}
+
+/* Action buttons styling */
+.btn-group .btn {
+    border-radius: 6px !important;
+    margin: 0 2px;
+}
+
+.btn-group .btn i {
+    font-size: 0.875rem;
+}
+
+.btn-outline-info:hover {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+/* Tooltip positioning fix */
+.tooltip {
+    font-size: 12px !important;
+}
+
+.tooltip-inner {
+    max-width: 200px;
+    padding: 6px 10px;
+    background-color: #333 !important;
+    border-radius: 4px;
+}
+
+.bs-tooltip-bottom .tooltip-arrow::before {
+    border-bottom-color: #333 !important;
+}
 </style>
+
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            placement: 'bottom',
+            delay: { show: 300, hide: 100 }
+        });
+    });
+});
+
+// Sweet delete confirmation for categories
+function deleteCategory(categoryId, categoryName) {
+    if (confirm(`Are you sure you want to delete category "${categoryName}"?\n\nThis action cannot be undone and will affect all products in this category.`)) {
+        document.getElementById('delete-form-' + categoryId).submit();
+    }
+}
+
+// Auto-refresh every 10 seconds
+setInterval(function() {
+    location.reload();
+}, 10000);
+</script>

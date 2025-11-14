@@ -172,6 +172,70 @@ class NotificationMessageService
         return $this->firebaseService->sendToUser($userId, $title, $body, $data);
     }
 
+    // Custom Cake In Progress
+    public function sendCustomCakeInProgress($userId, $customId)
+    {
+        $title = '👨‍🍳 Baking Started!';
+        $body = "Great news! We've started working on your custom cake #$customId. Our master bakers are creating your masterpiece!";
+        
+        $data = [
+            'type' => 'custom_cake',
+            'custom_id' => (string)$customId,
+            'status' => 'in_progress',
+            'action' => 'custom_cake_details'
+        ];
+
+        return $this->firebaseService->sendToUser($userId, $title, $body, $data);
+    }
+
+    // Custom Cake Completed
+    public function sendCustomCakeCompleted($userId, $customId)
+    {
+        $title = '🎉 Custom Cake Ready!';
+        $body = "Fantastic! Your custom cake #$customId is completed and ready for pickup. Thank you for choosing BakeHub!";
+        
+        $data = [
+            'type' => 'custom_cake',
+            'custom_id' => (string)$customId,
+            'status' => 'completed',
+            'action' => 'custom_cake_details'
+        ];
+
+        return $this->firebaseService->sendToUser($userId, $title, $body, $data);
+    }
+
+    // Custom Cake Cancelled
+    public function sendCustomCakeCancelled($userId, $customId, $reason = null)
+    {
+        $title = '❌ Order Cancelled';
+        $body = "Your custom cake order #$customId has been cancelled. " . ($reason ?: 'Contact us for more details.');
+        
+        $data = [
+            'type' => 'custom_cake',
+            'custom_id' => (string)$customId,
+            'status' => 'cancelled',
+            'action' => 'custom_cake_details'
+        ];
+
+        return $this->firebaseService->sendToUser($userId, $title, $body, $data);
+    }
+
+    // Custom Cake Confirmed
+    public function sendCustomCakeConfirmed($userId, $customId)
+    {
+        $title = '✅ Order Confirmed!';
+        $body = "Your custom cake order #$customId has been confirmed! We'll review your design and get back to you soon.";
+        
+        $data = [
+            'type' => 'custom_cake',
+            'custom_id' => (string)$customId,
+            'status' => 'confirmed',
+            'action' => 'custom_cake_details'
+        ];
+
+        return $this->firebaseService->sendToUser($userId, $title, $body, $data);
+    }
+
     /**
      * ==========================================
      * BULK ORDER NOTIFICATIONS

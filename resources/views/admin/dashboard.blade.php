@@ -320,6 +320,12 @@
                             <div style="position: relative; height: 400px; width: 100%;">
                                 <canvas id="salesChart"></canvas>
                             </div>
+<!-- Income Report Button -->
+<div class="text-center mt-4 pt-3 border-top">
+    <a href="{{ route('admin.report.income') }}" class="btn btn-primary btn-lg px-4 py-2">
+        <i class="bi bi-file-text"></i> Report
+    </a>
+</div>
                         </div>
                     </div>
                 </div>
@@ -573,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Simple auto-refresh every 5 minutes
     setInterval(function() {
         location.reload();
-    }, 300000); // 5 minutes
+    }, 10000); // 10 seconds
     
     console.log('✅ Revenue Chart Ready - Shows completed orders only');
 });

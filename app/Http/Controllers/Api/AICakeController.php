@@ -119,7 +119,7 @@ class AICakeController extends Controller
     private function callAIApi(string $imagePath): array
     {
         try {
-            $aiApiUrl = config('app.ai_api_url', 'http://10.130.8.2:5000') . '/predict_cake';
+            $aiApiUrl = config('app.ai_api_url', 'http://192.168.100.4:5000') . '/api/v1/ai-cake';
             
             Log::info('🔗 Calling AI API', [
                 'ai_api_url' => $aiApiUrl,
@@ -471,7 +471,7 @@ class AICakeController extends Controller
     {
         try {
             $response = Http::timeout(10)->get(
-                config('app.ai_api_url', 'http://10.130.8.2:5000') . '/health'
+                config('app.ai_api_url', 'http://192.168.100.4:5000') . '/health'
             );
 
             if ($response->successful()) {

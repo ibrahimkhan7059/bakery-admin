@@ -57,7 +57,7 @@
                             <th class="border-0">Price</th>
                             <th class="border-0">Stock</th>
                             <th class="border-0">Allergens</th>
-                            <th class="border-0">Actions</th>
+                            <th class="border-0 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -75,19 +75,31 @@
                             <td>PKR {{ number_format($product->price, 2) }}</td>
                             <td>{{ $product->stock }}</td>
                             <td>{{ $product->allergens ?? '-' }}</td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-outline-secondary hover-lift" title="Edit">
-                                        <i class="bi bi-pencil"></i>
+                            <td class="text-center">
+                                <div class="btn-group" role="group" aria-label="Product actions">
+                                    <a href="{{ route('products.edit', $product->id) }}" 
+                                       class="btn btn-sm btn-outline-primary hover-lift" 
+                                       title="Edit Product"
+                                       data-bs-toggle="tooltip">
+                                        <i class="bi bi-pencil-square"></i>
                                     </a>
-                                    <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger hover-lift" title="Delete" onclick="return confirm('Are you sure you want to delete this product?')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-danger hover-lift" 
+                                            title="Delete Product"
+                                            data-bs-toggle="tooltip"
+                                            onclick="deleteProduct({{ $product->id }}, '{{ $product->name }}')">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
                                 </div>
+                                
+                                <!-- Hidden form for deletion -->
+                                <form id="delete-form-{{ $product->id }}" 
+                                      action="{{ route('products.destroy', $product->id) }}" 
+                                      method="POST" 
+                                      style="display: none;">
+                                    @csrf
+                                    @method('DELETE')
+                                </form>
                             </td>
                         </tr>
                         @empty
@@ -109,17 +121,17 @@
     @if($products->hasPages())
         <div class="d-flex justify-content-center mt-4">
             <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm justify-content-center">
+                <ul class="pagination pagination-sm justify-content-center compact-pagination">
                     {{-- Previous Page Link --}}
                     @if ($products->onFirstPage())
                         <li class="page-item disabled">
-                            <span class="page-link">
+                            <span class="page-link compact-page-link">
                                 <i class="bi bi-chevron-left"></i>
                             </span>
                         </li>
                     @else
                         <li class="page-item">
-                            <a class="page-link" href="{{ $products->previousPageUrl() }}" rel="prev">
+                            <a class="page-link compact-page-link" href="{{ $products->previousPageUrl() }}" rel="prev">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
@@ -130,11 +142,11 @@
                         @foreach ($products->getUrlRange(1, $products->lastPage()) as $page => $url)
                             @if ($page == $products->currentPage())
                                 <li class="page-item active">
-                                    <span class="page-link">{{ $page }}</span>
+                                    <span class="page-link compact-page-link">{{ $page }}</span>
                                 </li>
                             @else
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                    <a class="page-link compact-page-link" href="{{ $url }}">{{ $page }}</a>
                                 </li>
                             @endif
                         @endforeach
@@ -143,13 +155,13 @@
                     {{-- Next Page Link --}}
                     @if ($products->hasMorePages())
                         <li class="page-item">
-                            <a class="page-link" href="{{ $products->nextPageUrl() }}" rel="next">
+                            <a class="page-link compact-page-link" href="{{ $products->nextPageUrl() }}" rel="next">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>
                     @else
                         <li class="page-item disabled">
-                            <span class="page-link">
+                            <span class="page-link compact-page-link">
                                 <i class="bi bi-chevron-right"></i>
                             </span>
                         </li>
@@ -160,3 +172,105 @@
     @endif
 </div>
 @endsection
+
+<style>
+/* Compact Pagination Styles */
+.compact-pagination .page-link {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.875rem !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    margin: 0 2px !important;
+}
+
+.compact-pagination .page-item {
+    margin: 0 !important;
+}
+
+.compact-pagination .page-link i {
+    font-size: 0.75rem !important;
+}
+
+.compact-pagination .page-item.active .page-link {
+    background-color: #FF6F61 !important;
+    border-color: #FF6F61 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.compact-pagination .page-link:hover {
+    background-color: rgba(255, 111, 97, 0.1) !important;
+    border-color: #FF6F61 !important;
+    color: #FF6F61 !important;
+}
+
+/* Action buttons styling */
+.btn-group .btn {
+    border-radius: 6px !important;
+    margin: 0 2px;
+}
+
+.btn-group .btn i {
+    font-size: 0.875rem;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-outline-success:hover {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+/* Tooltip positioning fix */
+.tooltip {
+    font-size: 12px !important;
+}
+
+.tooltip-inner {
+    max-width: 200px;
+    padding: 6px 10px;
+    background-color: #333 !important;
+    border-radius: 4px;
+}
+
+.bs-tooltip-bottom .tooltip-arrow::before {
+    border-bottom-color: #333 !important;
+}
+</style>
+
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            placement: 'bottom',
+            delay: { show: 300, hide: 100 }
+        });
+    });
+});
+
+// Sweet delete confirmation
+function deleteProduct(productId, productName) {
+    if (confirm(`Are you sure you want to delete product "${productName}"?\n\nThis action cannot be undone.`)) {
+        document.getElementById('delete-form-' + productId).submit();
+    }
+}
+
+// Auto-refresh every 10 seconds
+setInterval(function() {
+    location.reload();
+}, 10000);
+</script>

@@ -140,39 +140,96 @@
                 >
                     <h4 class="mb-3 mb-md-4 mt-3 mt-md-0">@yield('title', 'Dashboard')</h4>
                     <div class="mb-4 user-dropdown">
-                        <a
-                            class="dropdown-toggle"
-                            href="#"
-                            role="button"
-                            data-bs-toggle="dropdown"
-                        >
-                            <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a
-                                    class="dropdown-item"
-                                    href="{{ route('profile.edit') }}"
-                                    ><i class="bi bi-person"></i> Profile</a
-                                >
-                            </li>
-                            <li>
-                                <a
-                                    class="dropdown-item"
-                                    href="{{ route('settings') }}"
-                                    ><i class="bi bi-gear"></i> Settings</a
-                                >
-                            </li>
-                            <li><hr class="dropdown-divider" /></li>
-                            <li>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item">
-                                        <i class="bi bi-box-arrow-right"></i> Logout
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+                        <div class="dropdown">
+                            <button 
+                                class="btn dropdown-toggle admin-dropdown-btn" 
+                                type="button" 
+                                id="adminDropdown" 
+                                data-bs-toggle="dropdown" 
+                                aria-expanded="false"
+                            >
+                                <div class="d-flex align-items-center">
+                                    <div class="admin-avatar">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                    <div class="admin-info ms-2">
+                                        <div class="admin-name">{{ Auth::user()->name }}</div>
+                                        <div class="admin-role">Administrator</div>
+                                    </div>
+                                    <i class="bi bi-chevron-down ms-2 dropdown-arrow"></i>
+                                </div>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end admin-dropdown-menu shadow-lg">
+                                <li class="dropdown-header">
+                                    <div class="d-flex align-items-center">
+                                        <div class="admin-avatar-large">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                        <div class="ms-3">
+                                            <div class="fw-bold">{{ Auth::user()->name }}</div>
+                                            <div class="text-muted small">{{ Auth::user()->email }}</div>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider my-2" /></li>
+                                <li>
+                                    <a class="dropdown-item admin-dropdown-item" href="{{ route('profile.edit') }}">
+                                        <div class="d-flex align-items-center">
+                                            <div class="dropdown-icon">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                            <div class="ms-3">
+                                                <div class="fw-medium">Profile Settings</div>
+                                                <div class="text-muted small">Manage your account</div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item admin-dropdown-item" href="{{ route('settings') }}">
+                                        <div class="d-flex align-items-center">
+                                            <div class="dropdown-icon">
+                                                <i class="bi bi-gear"></i>
+                                            </div>
+                                            <div class="ms-3">
+                                                <div class="fw-medium">System Settings</div>
+                                                <div class="text-muted small">Configure application</div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item admin-dropdown-item" href="{{ route('dashboard') }}">
+                                        <div class="d-flex align-items-center">
+                                            <div class="dropdown-icon">
+                                                <i class="bi bi-speedometer2"></i>
+                                            </div>
+                                            <div class="ms-3">
+                                                <div class="fw-medium">Dashboard</div>
+                                                <div class="text-muted small">View analytics</div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-2" /></li>
+                                <li>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item admin-dropdown-item logout-item">
+                                            <div class="d-flex align-items-center">
+                                                <div class="dropdown-icon text-danger">
+                                                    <i class="bi bi-box-arrow-right"></i>
+                                                </div>
+                                                <div class="ms-3">
+                                                    <div class="fw-medium text-danger">Logout</div>
+                                                    <div class="text-muted small">Sign out of your account</div>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
 

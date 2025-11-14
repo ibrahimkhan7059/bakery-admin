@@ -198,7 +198,7 @@
                             <th>Total Amount</th>
                             <th>Status</th>
                             <th>Payment</th>
-                            <th>Actions</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -227,33 +227,39 @@
                                         {{ $order->formatted_payment_status }}
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="d-flex gap-2 justify-content-center">
+                                <td class="text-center">
+                                    <div class="btn-group" role="group" aria-label="Bulk order actions">
                                         <a href="{{ route('bulk-orders.show', $order) }}" 
-                                            class="btn btn-light btn-sm hover-lift" 
-                                            title="View Details">
-                                            <i class="bi bi-eye-fill"></i>
+                                           class="btn btn-sm btn-outline-info hover-lift" 
+                                           title="View Details"
+                                           data-bs-toggle="tooltip">
+                                            <i class="bi bi-eye"></i>
                                         </a>
                                         @if($order->status !== 'completed')
                                         <a href="{{ route('bulk-orders.edit', $order) }}" 
-                                            class="btn btn-light btn-sm hover-lift" 
-                                            title="Edit Order">
-                                            <i class="bi bi-pencil-fill"></i>
+                                           class="btn btn-sm btn-outline-primary hover-lift" 
+                                           title="Edit Order"
+                                           data-bs-toggle="tooltip">
+                                            <i class="bi bi-pencil-square"></i>
                                         </a>
                                         @endif
-                                        <form action="{{ route('bulk-orders.destroy', $order) }}" 
-                                            method="POST" 
-                                            class="d-inline"
-                                            onsubmit="return confirm('Are you sure you want to delete this order?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                class="btn btn-light btn-sm hover-lift" 
-                                                title="Delete Order">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger hover-lift" 
+                                                title="Delete Order"
+                                                data-bs-toggle="tooltip"
+                                                onclick="deleteBulkOrder({{ $order->id }}, '{{ $order->order_number }}')">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
                                     </div>
+                                    
+                                    <!-- Hidden form for deletion -->
+                                    <form id="delete-form-{{ $order->id }}" 
+                                          action="{{ route('bulk-orders.destroy', $order) }}" 
+                                          method="POST" 
+                                          style="display: none;">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
                                 </td>
                             </tr>
                         @empty
@@ -326,4 +332,77 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+<style>
+/* Action buttons styling */
+.btn-group .btn {
+    border-radius: 6px !important;
+    margin: 0 2px;
+}
+
+.btn-group .btn i {
+    font-size: 0.875rem;
+}
+
+.btn-outline-info:hover {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-outline-success:hover {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+/* Tooltip positioning fix */
+.tooltip {
+    font-size: 12px !important;
+}
+
+.tooltip-inner {
+    max-width: 200px;
+    padding: 6px 10px;
+    background-color: #333 !important;
+    border-radius: 4px;
+}
+
+.bs-tooltip-bottom .tooltip-arrow::before {
+    border-bottom-color: #333 !important;
+}
+</style>
+
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            placement: 'bottom',
+            delay: { show: 300, hide: 100 }
+        });
+    });
+});
+
+// Sweet delete confirmation
+function deleteBulkOrder(orderId, orderNumber) {
+    if (confirm(`Are you sure you want to delete bulk order "${orderNumber}"?\n\nThis action cannot be undone.`)) {
+        document.getElementById('delete-form-' + orderId).submit();
+    }
+}
+
+// Auto-refresh every 10 seconds
+setInterval(function() {
+    location.reload();
+}, 10000);
+</script> 

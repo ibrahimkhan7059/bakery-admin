@@ -34,7 +34,7 @@
                         <div class="col-md-6">
                             <p><strong>Order Number:</strong> {{ $bulkOrder->order_number }}</p>
                             <p><strong>Order Type:</strong> {{ $bulkOrder->formatted_order_type }}</p>
-                            <p><strong>Status:</strong> 
+                            <!-- <p><strong>Status:</strong> 
                                 <span id="order-status-badge" class="badge badge-{{ 
                                     $bulkOrder->status === 'completed' ? 'success' : 
                                     ($bulkOrder->status === 'cancelled' ? 'danger' : 
@@ -43,7 +43,7 @@
                                 }}">
                                     {{ ucfirst($bulkOrder->status) }}
                                 </span>
-                            </p>
+                            </p> -->
                             <p><strong>Payment Status:</strong> 
                                 <span class="badge badge-{{ $bulkOrder->payment_status === 'paid' ? 'success' : ($bulkOrder->payment_status === 'partial' ? 'warning' : 'danger') }}">
                                     {{ $bulkOrder->formatted_payment_status }}

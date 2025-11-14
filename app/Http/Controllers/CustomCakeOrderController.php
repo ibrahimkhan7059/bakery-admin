@@ -231,43 +231,45 @@ class CustomCakeOrderController extends Controller
                     break;
 
                 case 'confirmed':
-                    // Design approved
-                    $this->notificationService->sendCustomCakeDesignUpdate(
+                    // Custom cake confirmed - use dedicated method
+                    $this->notificationService->sendCustomCakeConfirmed(
                         $customCakeOrder->user_id, 
-                        $customCakeOrder->id, 
-                        'approved',
-                        $request->admin_message
+                        $customCakeOrder->id
                     );
                     break;
 
                 case 'in_progress':
-                    // Quote ready with price
+                    // Custom cake work started - always send notification
                     if ($request->quoted_price) {
+                        // Quote ready with price
                         $this->notificationService->sendCustomCakeQuote(
                             $customCakeOrder->user_id, 
                             $customCakeOrder->id, 
                             $request->quoted_price
                         );
+                    } else {
+                        // Work started without quote - send progress update
+                        $this->notificationService->sendCustomCakeInProgress(
+                            $customCakeOrder->user_id, 
+                            $customCakeOrder->id
+                        );
                     }
                     break;
 
                 case 'completed':
-                    // Custom cake completed - use existing method format
-                    $this->notificationService->sendCustomCakeDesignUpdate(
+                    // Custom cake completed - use dedicated method
+                    $this->notificationService->sendCustomCakeCompleted(
                         $customCakeOrder->user_id, 
-                        $customCakeOrder->id, 
-                        'completed',
-                        'Your custom cake is ready for pickup! Thank you for choosing BakeHub.'
+                        $customCakeOrder->id
                     );
                     break;
 
                 case 'cancelled':
-                    // Custom cake cancelled
-                    $this->notificationService->sendCustomCakeDesignUpdate(
+                    // Custom cake cancelled - use dedicated method
+                    $this->notificationService->sendCustomCakeCancelled(
                         $customCakeOrder->user_id, 
-                        $customCakeOrder->id, 
-                        'cancelled',
-                        $request->admin_message ?: 'Custom cake order cancelled'
+                        $customCakeOrder->id,
+                        $request->admin_message
                     );
                     break;
             }
