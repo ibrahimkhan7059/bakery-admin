@@ -276,59 +276,61 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
-            @if($orders->hasPages())
-                <div class="d-flex justify-content-center mt-4">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination pagination-sm justify-content-center">
-                            {{-- Previous Page Link --}}
-                            @if ($orders->onFirstPage())
-                                <li class="page-item disabled">
-                                    <span class="page-link">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </span>
+        </div>
+    </div>
+
+    @if($orders->hasPages())
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm justify-content-center compact-pagination">
+                    {{-- Previous Page Link --}}
+                    @if ($orders->onFirstPage())
+                        <li class="page-item disabled">
+                            <span class="page-link compact-page-link">
+                                <i class="bi bi-chevron-left"></i>
+                            </span>
+                        </li>
+                    @else
+                        <li class="page-item">
+                            <a class="page-link compact-page-link" href="{{ $orders->previousPageUrl() }}" rel="prev">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    @endif
+
+                    {{-- Pagination Elements --}}
+                    @if($orders->lastPage() > 1)
+                        @foreach ($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
+                            @if ($page == $orders->currentPage())
+                                <li class="page-item active">
+                                    <span class="page-link compact-page-link">{{ $page }}</span>
                                 </li>
                             @else
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $orders->previousPageUrl() }}" rel="prev">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </a>
+                                    <a class="page-link compact-page-link" href="{{ $url }}">{{ $page }}</a>
                                 </li>
                             @endif
+                        @endforeach
+                    @endif
 
-                            {{-- Pagination Elements --}}
-                            @if($orders->lastPage() > 1)
-                                @foreach ($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
-                                    @if ($page == $orders->currentPage())
-                                        <li class="page-item active">
-                                            <span class="page-link">{{ $page }}</span>
-                                        </li>
-                                    @else
-                                        <li class="page-item">
-                                            <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                                        </li>
-                                    @endif
-                                @endforeach
-                            @endif
-
-                            {{-- Next Page Link --}}
-                            @if ($orders->hasMorePages())
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ $orders->nextPageUrl() }}" rel="next">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </a>
-                                </li>
-                            @else
-                                <li class="page-item disabled">
-                                    <span class="page-link">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </span>
-                                </li>
-                            @endif
-                        </ul>
-                    </nav>
-                </div>
-            @endif
+                    {{-- Next Page Link --}}
+                    @if ($orders->hasMorePages())
+                        <li class="page-item">
+                            <a class="page-link compact-page-link" href="{{ $orders->nextPageUrl() }}" rel="next">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    @else
+                        <li class="page-item disabled">
+                            <span class="page-link compact-page-link">
+                                <i class="bi bi-chevron-right"></i>
+                            </span>
+                        </li>
+                    @endif
+                </ul>
+            </nav>
+        </div>
+    @endif
         </div>
     </div>
 </div>
@@ -365,6 +367,40 @@
     border-color: #198754;
 }
 
+/* Compact Pagination Styles */
+.compact-pagination .page-link {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.875rem !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    margin: 0 2px !important;
+}
+
+.compact-pagination .page-item {
+    margin: 0 !important;
+}
+
+.compact-pagination .page-link i {
+    font-size: 0.75rem !important;
+}
+
+.compact-pagination .page-item.active .page-link {
+    background-color: #FF6F61 !important;
+    border-color: #FF6F61 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.compact-pagination .page-link:hover {
+    background-color: rgba(255, 111, 97, 0.1) !important;
+    border-color: #FF6F61 !important;
+    color: #FF6F61 !important;
+}
+
 /* Tooltip positioning fix */
 .tooltip {
     font-size: 12px !important;
@@ -377,8 +413,20 @@
     border-radius: 4px;
 }
 
+.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: #333 !important;
+}
+
 .bs-tooltip-bottom .tooltip-arrow::before {
     border-bottom-color: #333 !important;
+}
+
+.bs-tooltip-start .tooltip-arrow::before {
+    border-left-color: #333 !important;
+}
+
+.bs-tooltip-end .tooltip-arrow::before {
+    border-right-color: #333 !important;
 }
 </style>
 

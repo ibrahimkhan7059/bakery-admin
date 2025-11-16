@@ -142,7 +142,7 @@
                     <div class="mb-4 user-dropdown">
                         <div class="dropdown">
                             <button 
-                                class="btn dropdown-toggle admin-dropdown-btn" 
+                                class="admin-dropdown-btn" 
                                 type="button" 
                                 id="adminDropdown" 
                                 data-bs-toggle="dropdown" 

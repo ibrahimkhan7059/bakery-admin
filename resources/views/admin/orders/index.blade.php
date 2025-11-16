@@ -157,17 +157,17 @@
     @if($orders->hasPages())
         <div class="d-flex justify-content-center mt-4">
             <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm justify-content-center">
+                <ul class="pagination pagination-sm justify-content-center compact-pagination">
                     {{-- Previous Page Link --}}
                     @if ($orders->onFirstPage())
                         <li class="page-item disabled">
-                            <span class="page-link">
+                            <span class="page-link compact-page-link">
                                 <i class="bi bi-chevron-left"></i>
                             </span>
                         </li>
                     @else
                         <li class="page-item">
-                            <a class="page-link" href="{{ $orders->previousPageUrl() }}" rel="prev">
+                            <a class="page-link compact-page-link" href="{{ $orders->previousPageUrl() }}" rel="prev">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
@@ -178,11 +178,11 @@
                         @foreach ($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
                             @if ($page == $orders->currentPage())
                                 <li class="page-item active">
-                                    <span class="page-link">{{ $page }}</span>
+                                    <span class="page-link compact-page-link">{{ $page }}</span>
                                 </li>
                             @else
                                 <li class="page-item">
-                                    <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+                                    <a class="page-link compact-page-link" href="{{ $url }}">{{ $page }}</a>
                                 </li>
                             @endif
                         @endforeach
@@ -191,13 +191,13 @@
                     {{-- Next Page Link --}}
                     @if ($orders->hasMorePages())
                         <li class="page-item">
-                            <a class="page-link" href="{{ $orders->nextPageUrl() }}" rel="next">
+                            <a class="page-link compact-page-link" href="{{ $orders->nextPageUrl() }}" rel="next">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>
                     @else
                         <li class="page-item disabled">
-                            <span class="page-link">
+                            <span class="page-link compact-page-link">
                                 <i class="bi bi-chevron-right"></i>
                             </span>
                         </li>
@@ -238,6 +238,40 @@
 .btn-outline-success:hover {
     background-color: #198754;
     border-color: #198754;
+}
+
+/* Compact Pagination Styles */
+.compact-pagination .page-link {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.875rem !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    margin: 0 2px !important;
+}
+
+.compact-pagination .page-item {
+    margin: 0 !important;
+}
+
+.compact-pagination .page-link i {
+    font-size: 0.75rem !important;
+}
+
+.compact-pagination .page-item.active .page-link {
+    background-color: #FF6F61 !important;
+    border-color: #FF6F61 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.compact-pagination .page-link:hover {
+    background-color: rgba(255, 111, 97, 0.1) !important;
+    border-color: #FF6F61 !important;
+    color: #FF6F61 !important;
 }
 
 /* Tooltip positioning fix */
