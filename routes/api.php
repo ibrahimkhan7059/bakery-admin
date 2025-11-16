@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\PhoneAuthController;
+use App\Http\Controllers\Api\EmailOtpController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CartController;
@@ -14,6 +16,7 @@ use App\Http\Controllers\Api\CakeConfigController;
 use App\Http\Controllers\Api\AICakeController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\FcmTokenController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PaymentController;
 
 /*
@@ -28,6 +31,20 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/send-otp', [AuthController::class, 'sendOtp']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/verify-login', [AuthController::class, 'verifyLogin']);
+
+// Phone Authentication Routes (OTP via Firebase)
+Route::post('/phone-auth/check-phone', [PhoneAuthController::class, 'checkPhone']);
+Route::post('/phone-auth/verify-and-register', [PhoneAuthController::class, 'verifyAndRegister']);
+Route::post('/phone-auth/login', [PhoneAuthController::class, 'loginWithPhone']);
+
+// Email OTP Authentication Routes (100% FREE - No Billing!)
+Route::post('/email-otp/send-signup-otp', [EmailOtpController::class, 'sendSignupOtp']);
+Route::post('/email-otp/verify-signup-otp', [EmailOtpController::class, 'verifySignupOtp']);
+Route::post('/email-otp/resend-otp', [EmailOtpController::class, 'resendOtp']);
+
+// Password Reset Routes
+Route::post('/password/forgot', [PasswordResetController::class, 'sendResetOtp']);
+Route::post('/password/reset', [PasswordResetController::class, 'verifyOtpAndReset']);
 
 // Public Routes
 Route::get('/v1/categories', [CategoryController::class, 'index']);

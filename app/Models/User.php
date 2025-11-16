@@ -23,6 +23,8 @@ class User extends Authenticatable
         'phone',
         'role',
         'address',
+        'phone_verified_at',
+        'firebase_uid',
     ];
 
     /**
@@ -42,6 +44,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'phone_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
