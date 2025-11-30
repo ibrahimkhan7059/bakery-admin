@@ -128,8 +128,8 @@ Route::middleware('auth:sanctum')->group(function () {
 // PayFast Payment Routes
 Route::prefix('payment')->group(function () {
     Route::post('/initiate', [PaymentController::class, 'initiatePayment']);
-    Route::post('/success', [PaymentController::class, 'paymentSuccess']);
-    Route::post('/failure', [PaymentController::class, 'paymentFailure']);
+    Route::match(['get', 'post'], '/success', [PaymentController::class, 'paymentSuccess']);
+    Route::match(['get', 'post'], '/failure', [PaymentController::class, 'paymentFailure']);
     Route::get('/status', [PaymentController::class, 'checkPaymentStatus']);
 });
 
