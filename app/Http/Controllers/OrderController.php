@@ -119,6 +119,8 @@ class OrderController extends Controller
         $order->delivery_address = $validated['delivery_address'];
         $order->status = 'pending';
         $order->payment_status = 'pending';
+        // Sync payment_status_payfast with payment_status for Flutter app compatibility
+        $order->payment_status_payfast = 'pending';
         $order->payment_method = $validated['payment_method'];
         $order->notes = $validated['notes'];
         $order->save();
@@ -239,6 +241,8 @@ class OrderController extends Controller
         $order->payment_method = $validated['payment_method'];
         $order->status = $validated['status'];
         $order->payment_status = $validated['payment_status'];
+        // Sync payment_status_payfast with payment_status for Flutter app compatibility
+        $order->payment_status_payfast = $validated['payment_status'];
         $order->notes = $validated['notes'];
 
         // Return stock for existing products
@@ -430,7 +434,11 @@ class OrderController extends Controller
         }
 
         if ($request->action === 'payment_status') {
-            Order::whereIn('id', $request->order_ids)->update(['payment_status' => $request->payment_status]);
+            // Sync both payment_status and payment_status_payfast for Flutter app compatibility
+            Order::whereIn('id', $request->order_ids)->update([
+                'payment_status' => $request->payment_status,
+                'payment_status_payfast' => $request->payment_status
+            ]);
             return redirect()->back()->with('success', 'Selected orders payment status updated successfully.');
         }
 

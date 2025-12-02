@@ -78,9 +78,33 @@ class PayFastService
 
     public function validatePaymentResponse($basketId, $errorCode, $validationHash)
     {
+        // Optional: allow disabling validation in local / test environments
+        if (env('PAYFAST_DISABLE_VALIDATION', false)) {
+            Log::warning('PayFast validation bypassed because PAYFAST_DISABLE_VALIDATION=true');
+            Log::warning('Callback data (basketId, err_code, validation_hash):', [
+                'basket_id' => $basketId,
+                'err_code' => $errorCode,
+                'validation_hash' => $validationHash,
+            ]);
+            return true;
+        }
+
+        // Default hash validation (may need to be adjusted to match official PayFast docs)
         $stringToHash = $basketId . '|' . $this->securedKey . '|' . $this->merchantId . '|' . $errorCode;
         $calculatedHash = hash('sha256', $stringToHash);
-        return $calculatedHash === $validationHash;
+
+        $isValid = hash_equals($calculatedHash, (string) $validationHash);
+
+        Log::info('PayFast validation check', [
+            'basket_id' => $basketId,
+            'err_code' => $errorCode,
+            'string_to_hash' => $stringToHash,
+            'calculated_hash' => $calculatedHash,
+            'received_validation_hash' => $validationHash,
+            'valid' => $isValid,
+        ]);
+
+        return $isValid;
     }
 
     private function generateSignature()

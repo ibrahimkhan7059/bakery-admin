@@ -126,11 +126,8 @@ require __DIR__.'/auth.php';
 // ✅ Admin Notification Routes
 require __DIR__.'/admin_notifications.php';
 
+// ✅ Settings Route (alias for convenience)
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
 });
-
 

@@ -56,24 +56,29 @@ class DashboardController extends Controller
             $weeklySales[] = (float) $weekSales;
         }
         
-        // Simple today revenue data (every 4 hours)
+        // Today revenue data - TEST MODE: Last 60 seconds in 10-second intervals
         $todaySales = [];
         $todayLabels = [];
-        for ($i = 0; $i < 24; $i += 4) {
-            $hour = now()->startOfDay()->addHours($i);
-            $todayLabels[] = $hour->format('H:i');
-            $hourSales = Order::whereBetween('created_at', [
-                                $hour, 
-                                $hour->copy()->addHours(4)
-                            ])
+        for ($i = 60; $i >= 0; $i -= 10) {
+            $timeStart = now()->subSeconds($i);
+            $timeEnd = now()->subSeconds(max(0, $i - 10));
+            $todayLabels[] = $timeStart->format('H:i:s');
+            $intervalSales = Order::whereBetween('created_at', [$timeStart, $timeEnd])
                             ->where('status', 'completed')
                             ->sum('total_amount');
-            $todaySales[] = (float) $hourSales;
+            $todaySales[] = (float) $intervalSales;
         }
         
         // Get other dashboard data
         $recentOrders = Order::latest()->take(5)->get();
-        $popularProducts = Product::with('category')->latest()->limit(3)->get();
+        
+        // Get most ordered products (popular products based on order count)
+        $popularProducts = Product::with(['category', 'orderItems'])
+            ->withSum('orderItems as total_ordered', 'quantity')
+            ->orderByDesc('total_ordered')
+            ->limit(6) // Show top 6 most ordered products
+            ->get();
+        
         $recentCategories = Category::withCount('products')->latest()->limit(5)->get();
         $lowStockProducts = Product::where('stock', '<=', 5)->orderBy('stock', 'asc')->limit(5)->get();
         
@@ -115,18 +120,17 @@ class DashboardController extends Controller
                                           ->sum('total_amount');
         }
 
-        // Today data (every 4 hours)
+        // Today data - TEST MODE: Last 60 seconds in 10-second intervals
         $todaySales = [];
         $todayLabels = [];
-        for ($i = 0; $i < 24; $i += 4) {
-            $hour = now()->startOfDay()->addHours($i);
-            $todayLabels[] = $hour->format('H:i');
-            $todaySales[] = (float) Order::whereBetween('created_at', [
-                                          $hour, 
-                                          $hour->copy()->addHours(4)
-                                      ])
-                                      ->where('status', 'completed')
-                                      ->sum('total_amount');
+        for ($i = 60; $i >= 0; $i -= 10) {
+            $timeStart = now()->subSeconds($i);
+            $timeEnd = now()->subSeconds(max(0, $i - 10));
+            $todayLabels[] = $timeStart->format('H:i:s');
+            $intervalSales = Order::whereBetween('created_at', [$timeStart, $timeEnd])
+                                  ->where('status', 'completed')
+                                  ->sum('total_amount');
+            $todaySales[] = (float) $intervalSales;
         }
 
         return response()->json([

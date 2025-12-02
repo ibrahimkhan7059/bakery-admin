@@ -29,7 +29,11 @@ class BulkOrder extends Model
         'advance_payment',
         'special_instructions',
         'cancellation_reason',
-        'user_id'
+        'user_id',
+        'basket_id',
+        'transaction_id',
+        'payment_date',
+        'payment_error'
     ];
 
     protected $casts = [

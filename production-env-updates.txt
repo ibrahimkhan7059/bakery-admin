@@ -1,0 +1,19 @@
+# 📧 Email Configuration for OTP System
+# Add these to your production .env file
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your_bakery_email@gmail.com
+MAIL_PASSWORD=your_app_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=your_bakery_email@gmail.com
+MAIL_FROM_NAME="BakeHub"
+
+# 🔧 Production Settings
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://yourdomain.com
+
+# 📱 AI Service URL (if using)
+AI_API_URL=http://your_server_ip:5000

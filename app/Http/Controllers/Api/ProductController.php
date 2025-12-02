@@ -11,7 +11,12 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category')
+        // Get products sorted by most ordered (popularity)
+        // Products with most order items (quantity sum) appear first
+        $products = Product::with(['category', 'orderItems'])
+            ->withSum('orderItems as total_ordered', 'quantity')
+            ->orderByDesc('total_ordered')
+            ->orderBy('created_at', 'desc') // Secondary sort by newest
             ->get()
             ->map(function ($product) {
                 return [
@@ -26,6 +31,7 @@ class ProductController extends Controller
                         'id' => $product->category->id,
                         'name' => $product->category->name,
                     ] : null,
+                    'total_ordered' => (int) ($product->total_ordered ?? 0), // Add order count
                     'created_at' => $product->created_at,
                     'updated_at' => $product->updated_at,
                 ];

@@ -1,0 +1,14 @@
+# 🚀 Quick Laravel Update Commands
+
+# Basic Update (30 seconds)
+git pull && composer install --no-dev && php artisan optimize
+
+# Full Update with Migrations (2 minutes)  
+git pull && composer install --no-dev && php artisan migrate --force && php artisan optimize
+
+# Emergency Rollback (if issues)
+git reset --hard HEAD~1 && composer install --no-dev && php artisan optimize
+
+# Check Update Status
+php artisan --version
+git log --oneline -5

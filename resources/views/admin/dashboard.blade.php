@@ -206,44 +206,69 @@
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="card border-0 shadow-sm rounded-lg glass-card">
-                        <div class="card-header bg-transparent py-3">
-                            <h5 class="mb-0 fw-bold text-gray-800">Popular Products</h5>
+                        <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0 fw-bold text-gray-800">
+                                    <i class="bi bi-star-fill text-warning me-2"></i>Popular Products
+                                </h5>
+                                <small class="text-muted">Most ordered items</small>
+                            </div>
+                            <a href="{{ route('products.index') }}" class="btn btn-sm btn-outline-primary hover-lift">
+                                <i class="bi bi-eye me-1"></i> View All
+                            </a>
                         </div>
                         <div class="card-body">
-                            @forelse($popularProducts as $product)
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="rounded-circle overflow-hidden me-3" style="width: 50px; height: 50px;">
-                                    @if($product->image && file_exists(public_path('storage/' . $product->image)))
-                                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-100 h-100" style="object-fit: cover;">
-                                    @else
-                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
-                                            <i class="bi bi-image text-muted"></i>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between">
-                                        <h6 class="mb-0">{{ $product->name }}</h6>
-                                        <span class="text-success">Rs{{ number_format($product->price, 2) }}</span>
-                                    </div>
-                                    <small class="text-muted">{{ $product->category->name ?? 'No Category' }}</small>
-                                    <div class="progress mt-2" style="height: 5px;">
-                                        @php
-                                            $popularity = isset($product->total_ordered) 
-                                                ? min(($product->total_ordered / max($popularProducts->max('total_ordered'), 1)) * 100, 100)
-                                                : rand(40, 80);
-                                        @endphp
-                                        <div class="progress-bar bg-indigo-500" role="progressbar" style="width: {{ $popularity }}%" aria-valuenow="{{ $popularity }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            @empty
-                            <div class="text-center py-3">
-                                <i class="bi bi-box2 text-muted" style="font-size: 2rem;"></i>
-                                <p class="text-muted mb-0 mt-2">No products found</p>
-                                <a href="{{ route('products.create') }}" class="btn btn-sm btn-primary mt-2">Add First Product</a>
-                            </div>
-                            @endforelse
+            @forelse($popularProducts as $product)
+            <div class="d-flex align-items-center mb-3 p-2 rounded hover-lift" style="transition: all 0.3s;">
+                <div class="rounded-circle overflow-hidden me-3 position-relative" style="width: 50px; height: 50px;">
+                    @if($product->image && file_exists(public_path('storage/' . $product->image)))
+                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-100 h-100" style="object-fit: cover;">
+                    @else
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                            <i class="bi bi-image text-muted"></i>
+                        </div>
+                    @endif
+                    @if($loop->index < 3)
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-{{ $loop->index == 0 ? 'warning' : ($loop->index == 1 ? 'secondary' : 'danger') }}" style="font-size: 0.65rem;">
+                            {{ $loop->index + 1 }}
+                        </span>
+                    @endif
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-0">{{ $product->name }}</h6>
+                            <small class="text-muted">{{ $product->category->name ?? 'No Category' }}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-success fw-bold">Rs{{ number_format($product->price, 2) }}</span>
+                            <br>
+                            <small class="text-muted">
+                                <i class="bi bi-cart-check-fill text-primary"></i> {{ $product->total_ordered ?? 0 }} orders
+                            </small>
+                        </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 5px;">
+                        @php
+                            $maxOrdered = $popularProducts->max('total_ordered') ?: 1;
+                            $popularity = $product->total_ordered 
+                                ? min(($product->total_ordered / $maxOrdered) * 100, 100)
+                                : 0;
+                        @endphp
+                        <div class="progress-bar bg-gradient" role="progressbar" 
+                             style="width: {{ $popularity }}%; background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);" 
+                             aria-valuenow="{{ $popularity }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @empty
+            <div class="text-center py-3">
+                <i class="bi bi-box2 text-muted" style="font-size: 2rem;"></i>
+                <p class="text-muted mb-0 mt-2">No products found</p>
+                <a href="{{ route('products.create') }}" class="btn btn-sm btn-primary mt-2">Add First Product</a>
+            </div>
+            @endforelse
                         </div>
                     </div>
                 </div>
@@ -427,10 +452,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const todayData = {
-        labels: @json($todayLabels).length > 0 ? @json($todayLabels) : ['00:00', '06:00', '12:00', '18:00', '23:00'],
+        labels: @json($todayLabels).length > 0 ? @json($todayLabels) : ['60s ago', '50s ago', '40s ago', '30s ago', '20s ago', '10s ago', 'Now'],
         datasets: [{
-            label: 'Hourly Revenue (Rs)',
-            data: @json($todaySales).length > 0 ? @json($todaySales) : [0, 0, 0, 0, 0],
+            label: 'Real-time Revenue (Last 60 sec)',
+            data: @json($todaySales).length > 0 ? @json($todaySales) : [0, 0, 0, 0, 0, 0, 0],
             borderColor: '#ffc107',
             backgroundColor: 'rgba(255, 193, 7, 0.1)',
             borderWidth: 3,
@@ -576,12 +601,19 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('⏰ Today Revenue View');
     });
 
-    // Simple auto-refresh every 5 minutes
-    setInterval(function() {
-        location.reload();
-    }, 10000); // 10 seconds
+    // TEST MODE: Auto-refresh every 5 seconds to see changes quickly
+    let refreshCounter = 5;
+    const refreshInterval = setInterval(function() {
+        refreshCounter--;
+        if (refreshCounter <= 0) {
+            console.log('🔄 Refreshing dashboard data... (TEST MODE: 5 sec refresh)');
+            location.reload();
+        }
+    }, 1000); // Update every second
     
-    console.log('✅ Revenue Chart Ready - Shows completed orders only');
+    console.log('✅ Revenue Chart Ready - TEST MODE');
+    console.log('📊 Today view shows last 60 seconds in 10-second intervals');
+    console.log('🔄 Auto-refresh: Every 5 seconds');
 });
 </script>
 @endpush
