@@ -23,6 +23,24 @@ class CustomCakeOrderController extends Controller
      */
     public function index(Request $request)
     {
+        // If this is an API request (mobile app), return JSON for the authenticated user
+        if ($request->wantsJson() || $request->is('api/*')) {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Unauthenticated.',
+                ], 401);
+            }
+
+            $orders = CustomCakeOrder::where('user_id', $user->id)
+                ->orderByDesc('created_at')
+                ->get();
+
+            return response()->json($orders);
+        }
+
+        // Default: admin web view
         $query = CustomCakeOrder::query();
 
         // Apply filters
