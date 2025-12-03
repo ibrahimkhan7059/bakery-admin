@@ -379,6 +379,7 @@
                                autocomplete="email" 
                                autofocus 
                                placeholder="Enter your email address" 
+                               pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
                                maxlength="255">
                     </div>
                     @error('email')
@@ -569,38 +570,34 @@
                 const email = emailInput.value.trim();
                 const password = passwordInput.value;
                 
-                // Basic validation only - let Laravel handle the rest
-                if (email === '') {
+                // Validate email
+                if (email === '' || !isValidEmail(email)) {
                     e.preventDefault();
                     emailInput.classList.add('is-invalid');
-                    createValidationMessage(emailInput, 'Please enter your email address');
+                    
+                    let errorMsg = 'Please enter a valid email address';
+                    if (!email.includes('@')) {
+                        errorMsg = 'Email must contain @ symbol';
+                    } else if (!email.split('@')[1] || !email.split('@')[1].includes('.')) {
+                        errorMsg = 'Email must have a valid domain (e.g., @gmail.com)';
+                    }
+                    
+                    createValidationMessage(emailInput, errorMsg);
                     emailInput.focus();
                     return false;
                 }
                 
+                // Validate password
                 if (password === '') {
                     e.preventDefault();
                     passwordInput.classList.add('is-invalid');
-                    createValidationMessage(passwordInput, 'Please enter your password');
                     passwordInput.focus();
                     return false;
                 }
                 
-                // Only check basic email format, not strict validation
-                if (!email.includes('@')) {
-                    e.preventDefault();
-                    emailInput.classList.add('is-invalid');
-                    createValidationMessage(emailInput, 'Email must contain @ symbol');
-                    emailInput.focus();
-                    return false;
-                }
-                
-                // Show loading state and allow form to submit
+                // Show loading state
                 submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Logging in...';
                 submitButton.disabled = true;
-                
-                // Let the form submit naturally
-                return true;
             });
             
             // Email suggestions for common typos

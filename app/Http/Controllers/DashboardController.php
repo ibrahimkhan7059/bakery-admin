@@ -27,10 +27,13 @@ class DashboardController extends Controller
             'cancelled' => Order::where('status', 'cancelled')->count(),
         ];
         
-        // Calculate total revenue from completed orders only
-        $totalRevenue = Order::where('status', 'completed')->sum('total_amount');
+        // Calculate total revenue from completed, delivered, and paid orders
+        $totalRevenue = Order::where(function($query) {
+            $query->whereIn('status', ['completed', 'delivered'])
+                  ->orWhere('payment_status', 'paid');
+        })->sum('total_amount');
         
-        // Simple monthly revenue data (last 6 months)
+        // Simple monthly revenue data (last 6 months) - Include completed and delivered orders
         $monthlySales = [];
         $monthlyLabels = [];
         for ($i = 5; $i >= 0; $i--) {
@@ -38,12 +41,15 @@ class DashboardController extends Controller
             $monthlyLabels[] = $date->format('M Y');
             $monthSales = Order::whereYear('created_at', $date->year)
                              ->whereMonth('created_at', $date->month)
-                             ->where('status', 'completed')
+                             ->where(function($query) {
+                                 $query->whereIn('status', ['completed', 'delivered'])
+                                       ->orWhere('payment_status', 'paid');
+                             })
                              ->sum('total_amount');
             $monthlySales[] = (float) $monthSales;
         }
         
-        // Simple weekly revenue data (last 4 weeks)
+        // Simple weekly revenue data (last 4 weeks) - Include completed and delivered orders
         $weeklySales = [];
         $weeklyLabels = [];
         for ($i = 3; $i >= 0; $i--) {
@@ -51,22 +57,30 @@ class DashboardController extends Controller
             $endOfWeek = now()->subWeeks($i)->endOfWeek();
             $weeklyLabels[] = $i == 0 ? 'This Week' : $i . ' weeks ago';
             $weekSales = Order::whereBetween('created_at', [$startOfWeek, $endOfWeek])
-                            ->where('status', 'completed')
+                            ->where(function($query) {
+                                $query->whereIn('status', ['completed', 'delivered'])
+                                      ->orWhere('payment_status', 'paid');
+                            })
                             ->sum('total_amount');
             $weeklySales[] = (float) $weekSales;
         }
         
-        // Today revenue data - TEST MODE: Last 60 seconds in 10-second intervals
+        // Simple today revenue data (every 4 hours) - Include completed and delivered orders
         $todaySales = [];
         $todayLabels = [];
-        for ($i = 60; $i >= 0; $i -= 10) {
-            $timeStart = now()->subSeconds($i);
-            $timeEnd = now()->subSeconds(max(0, $i - 10));
-            $todayLabels[] = $timeStart->format('H:i:s');
-            $intervalSales = Order::whereBetween('created_at', [$timeStart, $timeEnd])
-                            ->where('status', 'completed')
+        for ($i = 0; $i < 24; $i += 4) {
+            $hour = now()->startOfDay()->addHours($i);
+            $todayLabels[] = $hour->format('H:i');
+            $hourSales = Order::whereBetween('created_at', [
+                                $hour, 
+                                $hour->copy()->addHours(4)
+                            ])
+                            ->where(function($query) {
+                                $query->whereIn('status', ['completed', 'delivered'])
+                                      ->orWhere('payment_status', 'paid');
+                            })
                             ->sum('total_amount');
-            $todaySales[] = (float) $intervalSales;
+            $todaySales[] = (float) $hourSales;
         }
         
         // Get other dashboard data
@@ -96,7 +110,7 @@ class DashboardController extends Controller
     {
         // Simple chart data for AJAX requests (completed orders only)
         
-        // Monthly data (last 6 months)
+        // Monthly data (last 6 months) - Include completed, delivered, and paid orders
         $monthlySales = [];
         $monthlyLabels = [];
         for ($i = 5; $i >= 0; $i--) {
@@ -104,11 +118,14 @@ class DashboardController extends Controller
             $monthlyLabels[] = $date->format('M Y');
             $monthlySales[] = (float) Order::whereYear('created_at', $date->year)
                                           ->whereMonth('created_at', $date->month)
-                                          ->where('status', 'completed')
+                                          ->where(function($query) {
+                                              $query->whereIn('status', ['completed', 'delivered'])
+                                                    ->orWhere('payment_status', 'paid');
+                                          })
                                           ->sum('total_amount');
         }
         
-        // Weekly data (last 4 weeks)
+        // Weekly data (last 4 weeks) - Include completed, delivered, and paid orders
         $weeklySales = [];
         $weeklyLabels = [];
         for ($i = 3; $i >= 0; $i--) {
@@ -116,21 +133,28 @@ class DashboardController extends Controller
             $endOfWeek = now()->subWeeks($i)->endOfWeek();
             $weeklyLabels[] = $i == 0 ? 'This Week' : $i . ' weeks ago';
             $weeklySales[] = (float) Order::whereBetween('created_at', [$startOfWeek, $endOfWeek])
-                                          ->where('status', 'completed')
+                                          ->where(function($query) {
+                                              $query->whereIn('status', ['completed', 'delivered'])
+                                                    ->orWhere('payment_status', 'paid');
+                                          })
                                           ->sum('total_amount');
         }
 
-        // Today data - TEST MODE: Last 60 seconds in 10-second intervals
+        // Today data (every 4 hours) - Include completed, delivered, and paid orders
         $todaySales = [];
         $todayLabels = [];
-        for ($i = 60; $i >= 0; $i -= 10) {
-            $timeStart = now()->subSeconds($i);
-            $timeEnd = now()->subSeconds(max(0, $i - 10));
-            $todayLabels[] = $timeStart->format('H:i:s');
-            $intervalSales = Order::whereBetween('created_at', [$timeStart, $timeEnd])
-                                  ->where('status', 'completed')
-                                  ->sum('total_amount');
-            $todaySales[] = (float) $intervalSales;
+        for ($i = 0; $i < 24; $i += 4) {
+            $hour = now()->startOfDay()->addHours($i);
+            $todayLabels[] = $hour->format('H:i');
+            $todaySales[] = (float) Order::whereBetween('created_at', [
+                                          $hour, 
+                                          $hour->copy()->addHours(4)
+                                      ])
+                                      ->where(function($query) {
+                                          $query->whereIn('status', ['completed', 'delivered'])
+                                                ->orWhere('payment_status', 'paid');
+                                      })
+                                      ->sum('total_amount');
         }
 
         return response()->json([

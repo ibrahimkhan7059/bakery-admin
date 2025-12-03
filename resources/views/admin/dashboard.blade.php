@@ -329,9 +329,9 @@
                                     <i class="fas fa-chart-line me-2"></i>Revenue Overview
                                 </h5>
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="text-white">
-                                        <span class="opacity-75">Today:</span>
-                                        <span class="fw-bold">Rs{{ number_format(\App\Models\Order::whereDate('created_at', today())->where(function($q) { $q->whereIn('status', ['completed', 'delivered'])->orWhere('payment_status', 'paid'); })->sum('total_amount'), 0) }}</span>
+                                    <div class="text-white" id="revenueDisplay">
+                                        <span class="opacity-75" id="periodLabel">This Month:</span>
+                                        <span class="fw-bold" id="periodAmount">Rs{{ number_format(array_sum($monthlySales), 0) }}</span>
                                     </div>
                                     <div class="btn-group btn-group-sm" role="group">
                                         <button type="button" class="btn btn-light active" id="monthlyBtn">Monthly</button>
@@ -452,10 +452,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const todayData = {
-        labels: @json($todayLabels).length > 0 ? @json($todayLabels) : ['60s ago', '50s ago', '40s ago', '30s ago', '20s ago', '10s ago', 'Now'],
+        labels: @json($todayLabels).length > 0 ? @json($todayLabels) : ['00:00', '06:00', '12:00', '18:00', '23:00'],
         datasets: [{
-            label: 'Real-time Revenue (Last 60 sec)',
-            data: @json($todaySales).length > 0 ? @json($todaySales) : [0, 0, 0, 0, 0, 0, 0],
+            label: 'Hourly Revenue (Rs)',
+            data: @json($todaySales).length > 0 ? @json($todaySales) : [0, 0, 0, 0, 0],
             borderColor: '#ffc107',
             backgroundColor: 'rgba(255, 193, 7, 0.1)',
             borderWidth: 3,
@@ -564,6 +564,11 @@ document.addEventListener('DOMContentLoaded', function() {
         todayBtn.classList.remove('active', 'btn-light');
         todayBtn.classList.add('btn-outline-light');
         
+        // Update header display
+        const totalMonthly = @json($monthlySales).reduce((a, b) => a + b, 0);
+        document.getElementById('periodLabel').textContent = 'This Month:';
+        document.getElementById('periodAmount').textContent = 'Rs' + new Intl.NumberFormat('en-PK').format(totalMonthly);
+        
         salesChart.data = monthlyData;
         salesChart.update();
         console.log('📊 Monthly Revenue View');
@@ -579,6 +584,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         todayBtn.classList.remove('active', 'btn-light');
         todayBtn.classList.add('btn-outline-light');
+        
+        // Update header display
+        const totalWeekly = @json($weeklySales).reduce((a, b) => a + b, 0);
+        document.getElementById('periodLabel').textContent = 'This Week:';
+        document.getElementById('periodAmount').textContent = 'Rs' + new Intl.NumberFormat('en-PK').format(totalWeekly);
         
         salesChart.data = weeklyData;
         salesChart.update();
@@ -596,24 +606,22 @@ document.addEventListener('DOMContentLoaded', function() {
         weeklyBtn.classList.remove('active', 'btn-light');
         weeklyBtn.classList.add('btn-outline-light');
         
+        // Update header display
+        const totalToday = @json($todaySales).reduce((a, b) => a + b, 0);
+        document.getElementById('periodLabel').textContent = 'Today:';
+        document.getElementById('periodAmount').textContent = 'Rs' + new Intl.NumberFormat('en-PK').format(totalToday);
+        
         salesChart.data = todayData;
         salesChart.update();
         console.log('⏰ Today Revenue View');
     });
 
-    // TEST MODE: Auto-refresh every 5 seconds to see changes quickly
-    let refreshCounter = 5;
-    const refreshInterval = setInterval(function() {
-        refreshCounter--;
-        if (refreshCounter <= 0) {
-            console.log('🔄 Refreshing dashboard data... (TEST MODE: 5 sec refresh)');
-            location.reload();
-        }
-    }, 1000); // Update every second
+    // Simple auto-refresh every 5 minutes
+    setInterval(function() {
+        location.reload();
+    }, 50000); // 50 seconds
     
-    console.log('✅ Revenue Chart Ready - TEST MODE');
-    console.log('📊 Today view shows last 60 seconds in 10-second intervals');
-    console.log('🔄 Auto-refresh: Every 5 seconds');
+    console.log('✅ Revenue Chart Ready - Shows completed orders only');
 });
 </script>
 @endpush
