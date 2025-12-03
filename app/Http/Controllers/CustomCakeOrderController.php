@@ -24,7 +24,14 @@ class CustomCakeOrderController extends Controller
     public function index(Request $request)
     {
         // If this is an API request (mobile app), return JSON for the authenticated user
-        if ($request->wantsJson() || $request->is('api/*')) {
+        // Check multiple conditions to ensure we detect API requests correctly
+        $isApiRequest = $request->wantsJson() 
+            || $request->is('api/*') 
+            || $request->expectsJson()
+            || $request->header('Accept') === 'application/json'
+            || str_contains($request->path(), 'api/');
+
+        if ($isApiRequest) {
             $user = $request->user();
 
             if (!$user) {
@@ -36,6 +43,13 @@ class CustomCakeOrderController extends Controller
             $orders = CustomCakeOrder::where('user_id', $user->id)
                 ->orderByDesc('created_at')
                 ->get();
+
+            \Log::info('Custom cake orders API request', [
+                'user_id' => $user->id,
+                'orders_count' => $orders->count(),
+                'path' => $request->path(),
+                'accept_header' => $request->header('Accept'),
+            ]);
 
             return response()->json($orders);
         }
