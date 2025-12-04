@@ -1,0 +1,30 @@
+[1mdiff --git a/app/Http/Controllers/Api/CustomCakeOrderController.php b/app/Http/Controllers/Api/CustomCakeOrderController.php[m
+[1mindex d0eee65..740b68d 100644[m
+[1m--- a/app/Http/Controllers/Api/CustomCakeOrderController.php[m
+[1m+++ b/app/Http/Controllers/Api/CustomCakeOrderController.php[m
+[36m@@ -18,11 +18,24 @@[m [mclass CustomCakeOrderController extends Controller[m
+      */[m
+     public function index(Request $request)[m
+     {[m
+[32m+[m[32m        $user = $request->user();[m
+[32m+[m[41m        [m
+[32m+[m[32m        if (!$user) {[m
+[32m+[m[32m            \Log::warning('Custom cake orders API: No authenticated user');[m
+[32m+[m[32m            return response()->json(['message' => 'Unauthenticated'], 401);[m
+[32m+[m[32m        }[m
+[32m+[m
+         $orders = CustomCakeOrder::with('user')[m
+[31m-            ->where('user_id', $request->user()->id)[m
+[32m+[m[32m            ->where('user_id', $user->id)[m
+             ->latest()[m
+             ->get();[m
+ [m
+[32m+[m[32m        \Log::info('Custom cake orders API response', [[m
+[32m+[m[32m            'user_id' => $user->id,[m
+[32m+[m[32m            'orders_count' => $orders->count(),[m
+[32m+[m[32m            'order_ids' => $orders->pluck('id')->toArray(),[m
+[32m+[m[32m        ]);[m
+[32m+[m
+         return response()->json($orders);[m
+     }[m
+ [m

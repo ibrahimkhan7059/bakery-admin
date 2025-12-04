@@ -18,10 +18,23 @@ class CustomCakeOrderController extends Controller
      */
     public function index(Request $request)
     {
+        $user = $request->user();
+        
+        if (!$user) {
+            \Log::warning('Custom cake orders API: No authenticated user');
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
         $orders = CustomCakeOrder::with('user')
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $user->id)
             ->latest()
             ->get();
+
+        \Log::info('Custom cake orders API response', [
+            'user_id' => $user->id,
+            'orders_count' => $orders->count(),
+            'order_ids' => $orders->pluck('id')->toArray(),
+        ]);
 
         return response()->json($orders);
     }
