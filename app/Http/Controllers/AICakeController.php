@@ -44,18 +44,34 @@ class AICakeController extends Controller
                 ], 400);
             }
 
-            // Get prediction results
-            $prediction = $response['prediction'];
-            $predictedCategory = $response['prediction']['category'];
+            // Get prediction results directly from AI service
+            $prediction = $response['prediction'] ?? null;
+            $predictedCategory = $prediction['category'] ?? null;
 
-            // Find matching cakes from Laravel database
-            $matchingCakes = $this->findMatchingCakes($predictedCategory);
+            // NEW: Instead of searching Laravel DB again, just forward
+            // the AI's own matching_cakes list to the Flutter app.
+            $aiMatchingCakes = $response['matching_cakes'] ?? [];
+
+            // Optional light formatting so it fits nicely with the Flutter UI
+            $formattedCakes = array_map(function ($cake) {
+                // Map AI "image" field to "image_url" which Flutter already uses
+                $imageUrl = $cake['image_url'] ?? ($cake['image'] ?? null);
+
+                return [
+                    'id' => $cake['id'] ?? null,
+                    'name' => $cake['name'] ?? null,
+                    'category' => $cake['category'] ?? null,
+                    'price' => $cake['price'] ?? null,
+                    'image_url' => $imageUrl,
+                    'description' => $cake['description'] ?? null,
+                ];
+            }, $aiMatchingCakes);
 
             return response()->json([
                 'success' => true,
                 'prediction' => $prediction,
-                'matching_cakes' => $matchingCakes,
-                'message' => "Found " . count($matchingCakes) . " matching cakes in " . ucfirst(str_replace('_', ' ', $predictedCategory)) . " category"
+                'matching_cakes' => $formattedCakes,
+                'message' => 'Results generated directly from AI model',
             ]);
 
         } catch (\Exception $e) {
