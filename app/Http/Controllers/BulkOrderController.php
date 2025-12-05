@@ -83,7 +83,7 @@ class BulkOrderController extends Controller
             'customer_phone' => ['required', 'string', 'regex:/^(03[0-9]{9}|\+923[0-9]{9})$/'],
             'customer_email' => 'nullable|email|max:255',
             'delivery_address' => 'required|string|max:500',
-            'delivery_date' => 'required|date|after_or_equal:today',
+            'delivery_date' => 'required|date|after:' . now()->addDays(4)->format('Y-m-d'),
             'delivery_time' => 'nullable|date_format:H:i',
             'order_type' => 'required|in:birthday,party,corporate,other',
             'event_details' => 'nullable|string|max:1000',
@@ -96,7 +96,7 @@ class BulkOrderController extends Controller
             'products.*.notes' => 'nullable|string|max:500',
         ], [
             'customer_phone.regex' => 'Please enter a valid Pakistani phone number (e.g., 03001234567 or +923001234567)',
-            'delivery_date.after_or_equal' => 'Delivery date must be today or a future date',
+            'delivery_date.after' => 'Delivery date must be at least 5 days from today. Orders require advance notice for proper preparation.',
             'products.min' => 'Please add at least one product to the order',
         ]);
 

@@ -78,7 +78,10 @@
                         <div class="form-group">
                             <label for="delivery_date">Delivery Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control @error('delivery_date') is-invalid @enderror" 
-                                id="delivery_date" name="delivery_date" value="{{ old('delivery_date') }}" required>
+                                id="delivery_date" name="delivery_date" value="{{ old('delivery_date') }}" 
+                                min="{{ date('Y-m-d', strtotime('+5 days')) }}" required>
+                            <small class="form-text text-muted">Minimum delivery date is 5 days from today</small>
+                            <div id="date-error" class="invalid-feedback" style="display: none;"></div>
                             @error('delivery_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -454,6 +457,53 @@ document.addEventListener('DOMContentLoaded', function() {
             emailInput.classList.remove('is-invalid');
         }
     });
+
+    // Delivery date validation
+    const deliveryDateInput = document.getElementById('delivery_date');
+    const dateError = document.getElementById('date-error');
+    
+    function validateDeliveryDate(selectedDate) {
+        const today = new Date();
+        const minimumDate = new Date(today);
+        minimumDate.setDate(minimumDate.getDate() + 5);
+        
+        const selected = new Date(selectedDate);
+        const minimumDateString = minimumDate.toISOString().split('T')[0];
+        
+        return selectedDate >= minimumDateString;
+    }
+
+    function showDateError(message) {
+        dateError.textContent = message;
+        dateError.style.display = 'block';
+        deliveryDateInput.classList.add('is-invalid');
+    }
+
+    function hideDateError() {
+        dateError.textContent = '';
+        dateError.style.display = 'none';
+        deliveryDateInput.classList.remove('is-invalid');
+    }
+
+    deliveryDateInput.addEventListener('change', function() {
+        const selectedDate = this.value;
+        
+        if (selectedDate === '') {
+            showDateError('Delivery date is required');
+        } else if (!validateDeliveryDate(selectedDate)) {
+            showDateError('Delivery date must be at least 5 days from today. Orders require advance notice.');
+            this.value = ''; // Clear invalid date
+        } else {
+            hideDateError();
+        }
+    });
+
+    // Set minimum date on page load
+    const today = new Date();
+    const minimumDeliveryDate = new Date(today);
+    minimumDeliveryDate.setDate(minimumDeliveryDate.getDate() + 5);
+    const minimumDateString = minimumDeliveryDate.toISOString().split('T')[0];
+    deliveryDateInput.setAttribute('min', minimumDateString);
 });
 </script>
 @endpush

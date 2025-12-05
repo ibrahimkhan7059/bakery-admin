@@ -41,6 +41,98 @@
         appearance: none;
         background-image: none;
     }
+
+    /* Action buttons styling */
+    .btn-group .btn {
+        border-radius: 6px !important;
+        margin: 0 2px;
+    }
+
+    .btn-group .btn i {
+        font-size: 0.875rem;
+    }
+
+    .btn-outline-info:hover {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-outline-success:hover {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    /* Compact Pagination Styles */
+    .compact-pagination .page-link {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.875rem !important;
+        min-width: 32px !important;
+        height: 32px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 6px !important;
+        margin: 0 2px !important;
+    }
+
+    .compact-pagination .page-item {
+        margin: 0 !important;
+    }
+
+    .compact-pagination .page-link i {
+        font-size: 0.75rem !important;
+    }
+
+    .compact-pagination .page-item.active .page-link {
+        background-color: #FF6F61 !important;
+        border-color: #FF6F61 !important;
+        color: white !important;
+        font-weight: 600 !important;
+    }
+
+    .compact-pagination .page-link:hover {
+        background-color: rgba(255, 111, 97, 0.1) !important;
+        border-color: #FF6F61 !important;
+        color: #FF6F61 !important;
+    }
+
+    /* Tooltip positioning fix */
+    .tooltip {
+        font-size: 12px !important;
+    }
+
+    .tooltip-inner {
+        max-width: 200px;
+        padding: 6px 10px;
+        background-color: #333 !important;
+        border-radius: 4px;
+    }
+
+    .bs-tooltip-top .tooltip-arrow::before {
+        border-top-color: #333 !important;
+    }
+
+    .bs-tooltip-bottom .tooltip-arrow::before {
+        border-bottom-color: #333 !important;
+    }
+
+    .bs-tooltip-start .tooltip-arrow::before {
+        border-left-color: #333 !important;
+    }
+
+    .bs-tooltip-end .tooltip-arrow::before {
+        border-right-color: #333 !important;
+    }
 </style>
 
 <div class="container-fluid">
@@ -184,7 +276,7 @@
                             <th class="border-0">Price</th>
                             <th class="border-0">Status</th>
                             <th class="border-0">Delivery Date</th>
-                            <th class="border-0">Actions</th>
+                            <th class="border-0 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -216,31 +308,37 @@
                                 </span>
                             </td>
                             <td>{{ $order->delivery_date->format('M d, Y') }}</td>
-                            <td>
-                                <div class="btn-group">
+                            <td class="text-center">
+                                <div class="btn-group" role="group" aria-label="Custom Cake Order actions">
                                     <a href="{{ route('custom-cake-orders.show', $order) }}" 
-                                       class="btn btn-sm btn-outline-primary hover-lift" 
-                                       title="View Details">
+                                       class="btn btn-sm btn-outline-info hover-lift" 
+                                       title="View Order Details"
+                                       data-bs-toggle="tooltip">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <a href="{{ route('custom-cake-orders.edit', $order) }}" 
-                                       class="btn btn-sm btn-outline-secondary hover-lift" 
-                                       title="Edit Order">
-                                        <i class="bi bi-pencil"></i>
+                                       class="btn btn-sm btn-outline-primary hover-lift" 
+                                       title="Edit Order"
+                                       data-bs-toggle="tooltip">
+                                        <i class="bi bi-pencil-square"></i>
                                     </a>
-                                    <form action="{{ route('custom-cake-orders.destroy', $order) }}" 
-                                          method="POST" 
-                                          class="d-inline"
-                                          onsubmit="return confirm('Are you sure you want to delete this order?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="btn btn-sm btn-outline-danger hover-lift" 
-                                                title="Delete Order">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-danger hover-lift" 
+                                            title="Delete Order"
+                                            data-bs-toggle="tooltip"
+                                            onclick="deleteOrder({{ $order->id }}, '#{{ $order->id }}')">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
                                 </div>
+                                
+                                <!-- Hidden form for deletion -->
+                                <form id="delete-form-{{ $order->id }}" 
+                                      action="{{ route('custom-cake-orders.destroy', $order) }}" 
+                                      method="POST" 
+                                      style="display: none;">
+                                    @csrf
+                                    @method('DELETE')
+                                </form>
                             </td>
                         </tr>
                         @empty
@@ -259,15 +357,79 @@
         </div>
     </div>
 
-    <!-- Pagination -->
     @if($orders->hasPages())
-    <div class="d-flex justify-content-center mt-4">
-        {{ $orders->appends(request()->query())->links() }}
-    </div>
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm justify-content-center compact-pagination">
+                    {{-- Previous Page Link --}}
+                    @if ($orders->onFirstPage())
+                        <li class="page-item disabled">
+                            <span class="page-link compact-page-link">
+                                <i class="bi bi-chevron-left"></i>
+                            </span>
+                        </li>
+                    @else
+                        <li class="page-item">
+                            <a class="page-link compact-page-link" href="{{ $orders->previousPageUrl() }}" rel="prev">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    @endif
+
+                    {{-- Pagination Elements --}}
+                    @if($orders->lastPage() > 1)
+                        @foreach ($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
+                            @if ($page == $orders->currentPage())
+                                <li class="page-item active">
+                                    <span class="page-link compact-page-link">{{ $page }}</span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link compact-page-link" href="{{ $url }}">{{ $page }}</a>
+                                </li>
+                            @endif
+                        @endforeach
+                    @endif
+
+                    {{-- Next Page Link --}}
+                    @if ($orders->hasMorePages())
+                        <li class="page-item">
+                            <a class="page-link compact-page-link" href="{{ $orders->nextPageUrl() }}" rel="next">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    @else
+                        <li class="page-item disabled">
+                            <span class="page-link compact-page-link">
+                                <i class="bi bi-chevron-right"></i>
+                            </span>
+                        </li>
+                    @endif
+                </ul>
+            </nav>
+        </div>
     @endif
 </div>
 
 <script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            placement: 'bottom',
+            delay: { show: 300, hide: 100 }
+        });
+    });
+});
+
+// Sweet delete confirmation
+function deleteOrder(orderId, orderNumber) {
+    if (confirm(`Are you sure you want to delete custom cake order "${orderNumber}"?\n\nThis action cannot be undone.`)) {
+        document.getElementById('delete-form-' + orderId).submit();
+    }
+}
+
 // Auto-refresh every 10 seconds
 setInterval(function() {
     location.reload();
