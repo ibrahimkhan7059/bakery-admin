@@ -43,7 +43,7 @@
                                 </span>
                             </p> -->
                             <p><strong>Payment Status:</strong> 
-                                <span class="badge badge-{{ $bulkOrder->payment_status === 'paid' ? 'success' : ($bulkOrder->payment_status === 'partial' ? 'warning' : 'danger') }}">
+                                <span class="badge bg-{{ $bulkOrder->payment_status === 'paid' ? 'success' : ($bulkOrder->payment_status === 'partial' ? 'info' : 'warning') }}">
                                     {{ $bulkOrder->formatted_payment_status }}
                                 </span>
                             </p>
@@ -146,8 +146,8 @@
                 <div class="card-body">
                     <p><strong>Payment Method:</strong> {{ ucfirst($bulkOrder->payment_method) }}</p>
                     <p><strong>Payment Status:</strong> 
-                        <span class="badge badge-{{ $bulkOrder->payment_status === 'paid' ? 'success' : ($bulkOrder->payment_status === 'partial' ? 'warning' : 'danger') }}">
-                            {{ ucfirst($bulkOrder->payment_status) }}
+                        <span class="badge bg-{{ $bulkOrder->payment_status === 'paid' ? 'success' : ($bulkOrder->payment_status === 'partial' ? 'info' : 'warning') }}">
+                            {{ $bulkOrder->formatted_payment_status }}
                         </span>
                     </p>
                     <p><strong>Advance Payment:</strong> PKR {{ number_format($bulkOrder->advance_payment, 2) }}</p>
