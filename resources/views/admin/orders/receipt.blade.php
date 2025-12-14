@@ -19,58 +19,62 @@
         body {
             font-family: 'Poppins', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             background-color: var(--light-color);
+            font-size: 13px;
         }
 
         .receipt {
             max-width: 400px;
             margin: 0 auto;
-            padding: 30px;
+            padding: 15px;
             background: white;
-            border-radius: 15px;
+            border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
             border-bottom: 2px dashed #eee;
         }
 
         .header h1 {
-            margin: 0;
-            font-size: 28px;
+            margin: 5px 0;
+            font-size: 22px;
             color: var(--primary-color);
             font-weight: 700;
         }
 
         .header p {
-            margin: 8px 0;
+            margin: 3px 0;
             color: #666;
+            font-size: 12px;
         }
 
         .order-info {
             background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 12px;
         }
 
         .order-info p {
-            margin: 5px 0;
+            margin: 3px 0;
             color: #666;
+            font-size: 12px;
         }
 
         .items {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            font-size: 12px;
         }
 
         .items th, .items td {
-            padding: 12px;
+            padding: 6px 8px;
             text-align: left;
             border-bottom: 1px solid #eee;
         }
@@ -79,6 +83,7 @@
             background-color: var(--dark-color);
             color: white;
             font-weight: 500;
+            font-size: 11px;
         }
 
         .items tr:last-child td {
@@ -87,42 +92,44 @@
 
         .total {
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
         }
 
         .total p {
-            margin: 8px 0;
+            margin: 4px 0;
             display: flex;
             justify-content: space-between;
             color: #666;
+            font-size: 12px;
         }
 
         .total .grand-total {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 600;
             color: var(--dark-color);
-            margin-top: 15px;
-            padding-top: 15px;
+            margin-top: 8px;
+            padding-top: 8px;
             border-top: 2px dashed #eee;
         }
 
         .footer {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 15px;
             color: #666;
-            font-size: 14px;
+            font-size: 11px;
         }
 
         .footer p {
-            margin: 5px 0;
+            margin: 2px 0;
         }
 
         .thank-you {
             color: var(--primary-color);
             font-weight: 600;
-            margin-top: 20px;
+            margin-top: 10px;
+            font-size: 13px;
         }
 
         .print-btn {
@@ -172,7 +179,7 @@
 <body>
     <div class="receipt">
         <div class="header">
-            <img src="{{ asset('images/bakehub-logo.png') }}" alt="BakeHub Logo" style="max-width: 120px; height: auto; margin-bottom: 15px;">
+            <img src="{{ asset('images/bakehub-logo.png') }}" alt="BakeHub Logo" style="max-width: 80px; height: auto; margin-bottom: 8px;">
             <h1>BakeHub</h1>
             <p>Order Receipt</p>
             <p>Order #{{ $order->id }}</p>
