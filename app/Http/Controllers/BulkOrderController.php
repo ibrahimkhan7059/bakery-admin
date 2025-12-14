@@ -88,6 +88,7 @@ class BulkOrderController extends Controller
             'order_type' => 'required|in:birthday,party,corporate,other',
             'event_details' => 'nullable|string|max:1000',
             'payment_method' => 'required|in:cash,online',
+            'payment_status' => 'required|in:pending,partial,paid',
             'advance_payment' => 'nullable|numeric|min:0',
             'special_instructions' => 'nullable|string|max:1000',
             'products' => 'required|array|min:1',
@@ -125,10 +126,10 @@ class BulkOrderController extends Controller
             $bulkOrder->order_type = $validated['order_type'];
             $bulkOrder->event_details = $validated['event_details'];
             $bulkOrder->payment_method = $validated['payment_method'];
+            $bulkOrder->payment_status = $validated['payment_status'];
             $bulkOrder->advance_payment = $validated['advance_payment'] ?? 0;
             $bulkOrder->special_instructions = $validated['special_instructions'];
             $bulkOrder->status = 'pending';
-            $bulkOrder->payment_status = $validated['advance_payment'] > 0 ? 'partial' : 'pending';
             $bulkOrder->total_amount = 0; // Initialize with 0, will be updated after items are added
             $bulkOrder->save();
 
