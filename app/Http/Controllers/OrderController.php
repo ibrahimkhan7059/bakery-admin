@@ -87,6 +87,7 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255|regex:/^[A-Za-z\s]+$/',
+            'customer_email' => 'required|email|max:255',
             'customer_phone' => ['required', 'string', 'regex:/^(03[0-9]{9}|\+923[0-9]{9})$/'],
             'delivery_address' => 'required|string|max:255',
             'payment_method' => 'required|in:cash,online',
@@ -96,6 +97,8 @@ class OrderController extends Controller
             'products.*.quantity' => 'required|integer|min:1|max:100',
         ], [
             'customer_name.regex' => 'Customer name can only contain letters and spaces',
+            'customer_email.required' => 'Customer email is required',
+            'customer_email.email' => 'Please enter a valid email address',
             'customer_phone.regex' => 'Please enter a valid phone number',
             'products.min' => 'Please add at least one product to the order',
             'products.*.quantity.max' => 'Maximum quantity per product is 100',
@@ -115,6 +118,7 @@ class OrderController extends Controller
         $order = new Order();
         $order->user_id = auth()->id();
         $order->customer_name = $validated['customer_name'];
+        $order->customer_email = $validated['customer_email'];
         $order->customer_phone = $validated['customer_phone'];
         $order->delivery_address = $validated['delivery_address'];
         $order->status = 'pending';
@@ -203,6 +207,7 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255|regex:/^[A-Za-z\s]+$/',
+            'customer_email' => 'required|email|max:255',
             'customer_phone' => ['required', 'string', 'regex:/^(03[0-9]{9}|\+923[0-9]{9})$/'],
             'delivery_address' => 'required|string|max:255',
             'payment_method' => 'required|in:cash,online',
@@ -214,6 +219,8 @@ class OrderController extends Controller
             'notes' => 'nullable|string|max:500',
         ], [
             'customer_name.regex' => 'Customer name can only contain letters and spaces',
+            'customer_email.required' => 'Customer email is required',
+            'customer_email.email' => 'Please enter a valid email address',
             'customer_phone.regex' => 'Please enter a valid Pakistani phone number (e.g., 03001234567 or +923001234567)',
             'products.min' => 'Please add at least one product to the order',
             'products.*.quantity.max' => 'Maximum quantity per product is 100',
@@ -236,6 +243,7 @@ class OrderController extends Controller
         
         // Update order details
         $order->customer_name = $validated['customer_name'];
+        $order->customer_email = $validated['customer_email'];
         $order->customer_phone = $validated['customer_phone'];
         $order->delivery_address = $validated['delivery_address'];
         $order->payment_method = $validated['payment_method'];

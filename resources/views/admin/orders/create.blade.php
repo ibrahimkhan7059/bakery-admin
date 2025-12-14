@@ -48,6 +48,21 @@
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
+                            <label class="form-label">Customer Email <span class="text-danger">*</span></label>
+                            <input type="email" 
+                                   name="customer_email" 
+                                   class="form-control" 
+                                   value="{{ old('customer_email') }}" 
+                                   required
+                                   autocomplete="off">
+                            <div class="form-text">Enter customer's email address</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
                             <label class="form-label">Customer Phone <span class="text-danger">*</span></label>
                             <input type="text" 
                                    name="customer_phone" 
@@ -59,16 +74,18 @@
                             <div class="form-text">Enter valid phone number (03XXXXXXXXX)</div>
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Address <span class="text-danger">*</span></label>
+                            <textarea name="delivery_address" class="form-control @error('delivery_address') is-invalid @enderror" 
+                                rows="2" required maxlength="255">{{ old('delivery_address') }}</textarea>
+                            @error('delivery_address')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Delivery Address <span class="text-danger">*</span></label>
-                    <textarea name="delivery_address" class="form-control @error('delivery_address') is-invalid @enderror" 
-                        rows="2" required maxlength="255">{{ old('delivery_address') }}</textarea>
-                    @error('delivery_address')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
 
                 <div class="mb-4">
                     <label class="form-label">Payment Method <span class="text-danger">*</span></label>

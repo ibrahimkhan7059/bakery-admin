@@ -59,6 +59,10 @@
                         <p class="mb-0">{{ $order->customer_name }}</p>
                     </div>
                     <div class="mb-3">
+                        <label class="text-muted small">Email Address</label>
+                        <p class="mb-0">{{ $order->customer_email ?? 'Not provided' }}</p>
+                    </div>
+                    <div class="mb-3">
                         <label class="text-muted small">Phone Number</label>
                         <p class="mb-0">{{ $order->customer_phone }}</p>
                     </div>

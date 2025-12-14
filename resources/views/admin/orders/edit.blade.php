@@ -31,6 +31,18 @@
                     </div>
                     <div class="col-md-6">
                         <div class="mb-4">
+                            <label class="form-label">Customer Email</label>
+                            <input type="email" name="customer_email" class="form-control @error('customer_email') is-invalid @enderror" value="{{ old('customer_email', $order->customer_email) }}" required>
+                            @error('customer_email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
                             <label class="form-label">Customer Phone</label>
                             <input type="text" name="customer_phone" class="form-control @error('customer_phone') is-invalid @enderror" value="{{ old('customer_phone', $order->customer_phone) }}" required>
                             @error('customer_phone')
@@ -38,14 +50,15 @@
                             @enderror
                         </div>
                     </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label">Delivery Address</label>
-                    <textarea name="delivery_address" class="form-control @error('delivery_address') is-invalid @enderror" rows="2" required>{{ old('delivery_address', $order->delivery_address) }}</textarea>
-                    @error('delivery_address')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <label class="form-label">Delivery Address</label>
+                            <textarea name="delivery_address" class="form-control @error('delivery_address') is-invalid @enderror" rows="2" required>{{ old('delivery_address', $order->delivery_address) }}</textarea>
+                            @error('delivery_address')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
 
                 <div class="row">
