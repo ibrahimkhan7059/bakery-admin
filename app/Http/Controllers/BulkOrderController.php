@@ -201,11 +201,6 @@ class BulkOrderController extends Controller
 
     public function update(Request $request, BulkOrder $bulkOrder)
     {
-        if ($bulkOrder->status === 'completed') {
-            return redirect()->route('bulk-orders.show', $bulkOrder)
-                ->with('error', 'Cannot update a completed order.');
-        }
-
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
             'customer_phone' => ['required', 'string', 'regex:/^(03[0-9]{9}|\+923[0-9]{9})$/'],
