@@ -116,7 +116,8 @@ class OrderController extends Controller
 
         // Create order
         $order = new Order();
-        $order->user_id = auth()->id();
+        // Set user_id to null for admin-created orders so Flutter app can match by email
+        $order->user_id = null;
         $order->customer_name = $validated['customer_name'];
         $order->customer_email = $validated['customer_email'];
         $order->customer_phone = $validated['customer_phone'];
