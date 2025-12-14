@@ -40,6 +40,11 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function alternativeProduct(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'alternative_product_id');
+    }
+
     public function getImageUrlAttribute()
     {
         if (!$this->image) {

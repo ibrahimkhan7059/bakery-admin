@@ -77,6 +77,12 @@
                             <td>{{ $product->allergens ?? '-' }}</td>
                             <td class="text-center">
                                 <div class="btn-group" role="group" aria-label="Product actions">
+                                    <a href="{{ route('products.show', $product->id) }}" 
+                                       class="btn btn-sm btn-outline-info hover-lift" 
+                                       title="View Product"
+                                       data-bs-toggle="tooltip">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
                                     <a href="{{ route('products.edit', $product->id) }}" 
                                        class="btn btn-sm btn-outline-primary hover-lift" 
                                        title="Edit Product"

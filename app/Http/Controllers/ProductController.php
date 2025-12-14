@@ -169,6 +169,12 @@ class ProductController extends Controller
         }
 }
 
+    // 📌 Show single product details
+    public function show(Product $product)
+    {
+        return view('admin.products.show', compact('product'));
+    }
+
     // 📌 Show edit product form
     public function edit(Product $product)
     {
