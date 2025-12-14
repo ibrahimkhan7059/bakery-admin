@@ -172,6 +172,7 @@
 <body>
     <div class="receipt">
         <div class="header">
+            <img src="{{ asset('images/bakehub-logo.png') }}" alt="BakeHub Logo" style="max-width: 120px; height: auto; margin-bottom: 15px;">
             <h1>BakeHub</h1>
             <p>Order Receipt</p>
             <p>Order #{{ $order->id }}</p>
