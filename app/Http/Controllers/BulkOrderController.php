@@ -191,11 +191,6 @@ class BulkOrderController extends Controller
 
     public function edit(BulkOrder $bulkOrder)
     {
-        if ($bulkOrder->status === 'completed') {
-            return redirect()->route('bulk-orders.show', $bulkOrder)
-                ->with('error', 'Cannot edit a completed order.');
-        }
-
         $products = Product::all();
         return view('admin.bulk-orders.edit', compact('bulkOrder', 'products'));
     }
