@@ -14,11 +14,9 @@
             <a href="{{ route('bulk-orders.invoice', $bulkOrder) }}" class="btn btn-info" target="_blank">
                 <i class="fas fa-file-invoice"></i> View Invoice
             </a>
-            @if($bulkOrder->status !== 'completed')
-                <a href="{{ route('bulk-orders.edit', $bulkOrder) }}" class="btn btn-primary">
-                    <i class="fas fa-edit"></i> Edit Order
-                </a>
-            @endif
+            <a href="{{ route('bulk-orders.edit', $bulkOrder) }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit Order
+            </a>
         </div>
     </div>
 
@@ -147,6 +145,11 @@
                 </div>
                 <div class="card-body">
                     <p><strong>Payment Method:</strong> {{ ucfirst($bulkOrder->payment_method) }}</p>
+                    <p><strong>Payment Status:</strong> 
+                        <span class="badge badge-{{ $bulkOrder->payment_status === 'paid' ? 'success' : ($bulkOrder->payment_status === 'partial' ? 'warning' : 'danger') }}">
+                            {{ ucfirst($bulkOrder->payment_status) }}
+                        </span>
+                    </p>
                     <p><strong>Advance Payment:</strong> PKR {{ number_format($bulkOrder->advance_payment, 2) }}</p>
                     <p><strong>Remaining Balance:</strong> PKR {{ number_format($bulkOrder->remaining_payment, 2) }}</p>
                 </div>
